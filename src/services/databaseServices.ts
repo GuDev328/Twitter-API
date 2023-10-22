@@ -1,6 +1,12 @@
 import { Collection, Db, MongoClient, ServerApiVersion } from 'mongodb';
 import User from '~/models/schemas/UserSchema';
 import dotenv from 'dotenv';
+import Follower from '~/models/schemas/FollowerSchema';
+import Bookmark from '~/models/schemas/BookmarkSchema';
+import Hashtag from '~/models/schemas/HashtagSchema';
+import Like from '~/models/schemas/LikeSchema';
+import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
+import Tweet from '~/models/schemas/TweetSchema';
 dotenv.config();
 const uri = process.env.MONGODB_URI;
 
@@ -24,6 +30,25 @@ class DatabaseServices {
 
   get users(): Collection<User> {
     return this.db.collection('Users');
+  }
+
+  get bookmarks(): Collection<Bookmark> {
+    return this.db.collection('Bookmarks');
+  }
+  get followers(): Collection<Follower> {
+    return this.db.collection('Followers');
+  }
+  get hashtags(): Collection<Hashtag> {
+    return this.db.collection('Hashtags');
+  }
+  get likes(): Collection<Like> {
+    return this.db.collection('Likes');
+  }
+  get refreshTokens(): Collection<RefreshToken> {
+    return this.db.collection('RefreshTokens');
+  }
+  get tweets(): Collection<Tweet> {
+    return this.db.collection('Tweets');
   }
 }
 
