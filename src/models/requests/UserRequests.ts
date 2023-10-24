@@ -5,3 +5,8 @@ export interface RegisterRequest {
   confirmPassword: string;
   date_of_birth: string;
 }
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}

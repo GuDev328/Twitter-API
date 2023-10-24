@@ -1,9 +1,11 @@
-import { RegisterRequest } from '~/models/requests/UserRequests';
+import { LoginRequest, RegisterRequest } from '~/models/requests/UserRequests';
 import bcrypt from 'bcrypt';
 import User from '~/models/schemas/UserSchema';
 import db from '~/services/databaseServices';
 import { signToken } from '~/utils/jwt';
 import { TokenType } from '~/constants/enum';
+import { ErrorWithStatus } from '~/models/Errors';
+import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 
 class UsersService {
   constructor() {}
@@ -35,7 +37,41 @@ class UsersService {
     );
   }
 
-  async login(payload: { email: string; password: string }) {}
+  async login(payload: LoginRequest) {
+    const user = await db.users.findOne({ email: payload.email });
+    if (!user) {
+      throw new ErrorWithStatus({
+        status: 401,
+        message: 'Email not found'
+      });
+    } else {
+      const checkPassword = await bcrypt.compareSync(payload.password, user.password);
+      if (checkPassword) {
+        const [accessToken, refreshToken] = await Promise.all([
+          this.signAccessToken(user._id.toString()),
+          this.signRefreshToken(user._id.toString())
+        ]);
+
+        const saveRefreshToken = await db.refreshTokens.insertOne(
+          new RefreshToken({
+            token: refreshToken,
+            created_at: new Date(),
+            user_id: user._id
+          })
+        );
+
+        return {
+          accessToken,
+          refreshToken
+        };
+      } else {
+        throw new ErrorWithStatus({
+          status: 401,
+          message: 'Password incorrect'
+        });
+      }
+    }
+  }
 
   async register(payload: RegisterRequest) {
     const saltRounds = 10;
@@ -51,6 +87,15 @@ class UsersService {
       this.signAccessToken(userId),
       this.signRefreshToken(userId)
     ]);
+
+    const saveRefreshToken = await db.refreshTokens.insertOne(
+      new RefreshToken({
+        token: refreshToken,
+        created_at: new Date(),
+        user_id: result.insertedId
+      })
+    );
+
     return {
       accessToken,
       refreshToken
@@ -58,9 +103,9 @@ class UsersService {
   }
 
   async checkEmailExists(email: string) {
-    const users = await db.users.findOne({ email });
-    if (users) {
-      return true;
+    const user = await db.users.findOne({ email });
+    if (user) {
+      return user;
     } else return false;
   }
 }
