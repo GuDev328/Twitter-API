@@ -1,4 +1,4 @@
-import { LoginRequest, RegisterRequest } from '~/models/requests/UserRequests';
+import { LoginRequest, LogoutRequest, RegisterRequest } from '~/models/requests/UserRequests';
 import bcrypt from 'bcrypt';
 import User from '~/models/schemas/UserSchema';
 import db from '~/services/databaseServices';
@@ -107,6 +107,11 @@ class UsersService {
     if (user) {
       return user;
     } else return false;
+  }
+
+  async logout(payload: LogoutRequest) {
+    const deleteRefresh = await db.refreshTokens.deleteOne({ token: payload.refreshToken });
+    return;
   }
 }
 
