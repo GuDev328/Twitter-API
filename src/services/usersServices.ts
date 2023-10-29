@@ -1,11 +1,13 @@
-import { LoginRequest, LogoutRequest, RegisterRequest } from '~/models/requests/UserRequests';
+import { LoginRequest, LogoutRequest, RegisterRequest, VerifyEmailRequest } from '~/models/requests/UserRequests';
 import bcrypt from 'bcrypt';
 import User from '~/models/schemas/UserSchema';
 import db from '~/services/databaseServices';
-import { signToken } from '~/utils/jwt';
-import { TokenType } from '~/constants/enum';
+import { signToken, verifyToken } from '~/utils/jwt';
+import { TokenType, UserVerifyStatus } from '~/constants/enum';
 import { ErrorWithStatus } from '~/models/Errors';
 import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
+import { ObjectId } from 'mongodb';
+import { JwtPayload } from 'jsonwebtoken';
 
 class UsersService {
   constructor() {}
@@ -35,6 +37,15 @@ class UsersService {
         expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN
       }
     );
+  }
+
+  signEmailVerifyToken(userId: string) {
+    return signToken({
+      payload: {
+        userId,
+        type: TokenType.VerifyEmailToken
+      }
+    });
   }
 
   async login(payload: LoginRequest) {
@@ -76,6 +87,7 @@ class UsersService {
   async register(payload: RegisterRequest) {
     const saltRounds = 10;
     payload.password = await bcrypt.hashSync(payload.password, saltRounds);
+
     const result = await db.users.insertOne(
       new User({
         ...payload,
@@ -83,17 +95,22 @@ class UsersService {
       })
     );
     const userId = result.insertedId.toString();
-    const [accessToken, refreshToken] = await Promise.all([
+    const [accessToken, refreshToken, emailVerifyToken] = await Promise.all([
       this.signAccessToken(userId),
-      this.signRefreshToken(userId)
+      this.signRefreshToken(userId),
+      this.signEmailVerifyToken(userId)
     ]);
-
     const saveRefreshToken = await db.refreshTokens.insertOne(
       new RefreshToken({
         token: refreshToken,
         created_at: new Date(),
         user_id: result.insertedId
       })
+    );
+
+    const saveEmailVerifyToken = await db.users.updateOne(
+      { _id: new ObjectId(userId) },
+      { $set: { emailVerifyToken: emailVerifyToken } }
     );
 
     return {
@@ -112,6 +129,36 @@ class UsersService {
   async logout(payload: LogoutRequest) {
     const deleteRefresh = await db.refreshTokens.deleteOne({ token: payload.refreshToken });
     return;
+  }
+
+  async verifyEmail(payload: VerifyEmailRequest) {
+    const userId = payload.decodeEmailVerifyToken.payload.userId;
+    const user = await db.users.findOne({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      throw new ErrorWithStatus({
+        status: 400,
+        message: 'User not found'
+      });
+    } else {
+      if (user.emailVerifyToken === '') {
+        throw new ErrorWithStatus({
+          status: 400,
+          message: 'User is verified'
+        });
+      }
+      if (user.emailVerifyToken !== payload.emailVerifyToken) {
+        throw new ErrorWithStatus({
+          status: 400,
+          message: 'Email verify token is not match'
+        });
+      }
+      await db.users.updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: { verify: UserVerifyStatus.Verified, emailVerifyToken: '' } }
+      );
+      return;
+    }
   }
 }
 

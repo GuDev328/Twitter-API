@@ -1,3 +1,5 @@
+import { JwtPayload } from 'jsonwebtoken';
+
 export interface RegisterRequest {
   name: string;
   email: string;
@@ -13,4 +15,9 @@ export interface LoginRequest {
 
 export interface LogoutRequest {
   refreshToken: string;
+}
+
+export interface VerifyEmailRequest {
+  emailVerifyToken: string;
+  decodeEmailVerifyToken: JwtPayload;
 }

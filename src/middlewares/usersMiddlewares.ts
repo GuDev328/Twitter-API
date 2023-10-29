@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { body, checkSchema } from 'express-validator';
 import { request } from 'http';
+import { JwtPayload } from 'jsonwebtoken';
+import { TokenType } from '~/constants/enum';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import db from '~/services/databaseServices';
@@ -26,6 +28,13 @@ const accessTokenValidator = validate(
             } else {
               const decodeAuthorization = await verifyToken(accessToken);
               req.decodeAuthorization = decodeAuthorization;
+              if (decodeAuthorization.payload.type !== TokenType.AccessToken) {
+                throw new ErrorWithStatus({
+                  message: 'Type of token is not valid',
+                  status: 401
+                });
+              }
+
               return true;
             }
           }
@@ -58,6 +67,12 @@ const refreshTokenValidator = validate(
                 });
               }
               req.decodeRefreshToken = decodeRefreshToken;
+              if (decodeRefreshToken.payload.type !== TokenType.RefreshToken) {
+                throw new ErrorWithStatus({
+                  message: 'Type of token is not valid',
+                  status: 401
+                });
+              }
             } catch (e: any) {
               throw new ErrorWithStatus({
                 message: e.message,
@@ -164,6 +179,39 @@ const registerValidator = validate(
   )
 );
 
-const logoutValidator = validate(checkSchema({}));
+const verifyEmailValidator = validate(
+  checkSchema({
+    emailVerifyToken: {
+      custom: {
+        options: async (value: string, { req }) => {
+          const emailVerifyToken = req.body.emailVerifyToken;
+          if (!emailVerifyToken) {
+            throw new ErrorWithStatus({
+              message: 'Email verify token is required',
+              status: 401
+            });
+          }
 
-export default { loginValidator, registerValidator, logoutValidator, accessTokenValidator, refreshTokenValidator };
+          const decodeEmailVerifyToken = await verifyToken(emailVerifyToken);
+          req.body.decodeEmailVerifyToken = decodeEmailVerifyToken;
+          if (decodeEmailVerifyToken.payload.type !== TokenType.VerifyEmailToken) {
+            throw new ErrorWithStatus({
+              message: 'Type of token is not valid',
+              status: 401
+            });
+          }
+
+          return true;
+        }
+      }
+    }
+  })
+);
+
+export default {
+  verifyEmailValidator,
+  loginValidator,
+  registerValidator,
+  accessTokenValidator,
+  refreshTokenValidator
+};

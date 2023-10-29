@@ -12,4 +12,10 @@ router.post(
   usersMiddlewares.refreshTokenValidator,
   catchError(usersController.logoutController)
 );
+router.post(
+  '/verify-email',
+  usersMiddlewares.accessTokenValidator,
+  usersMiddlewares.verifyEmailValidator,
+  catchError(usersController.verifyEmailController)
+);
 export default router;

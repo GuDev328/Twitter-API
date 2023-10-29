@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { LoginRequest, LogoutRequest, RegisterRequest } from '~/models/requests/UserRequests';
+import { JwtPayload } from 'jsonwebtoken';
+import { LoginRequest, LogoutRequest, RegisterRequest, VerifyEmailRequest } from '~/models/requests/UserRequests';
 import userService from '~/services/usersServices';
 
 const loginController = async (req: Request<ParamsDictionary, any, LoginRequest>, res: Response) => {
@@ -26,8 +27,17 @@ const logoutController = async (req: Request<ParamsDictionary, any, LogoutReques
   });
 };
 
+const verifyEmailController = async (req: Request<ParamsDictionary, any, VerifyEmailRequest>, res: Response) => {
+  const result = await userService.verifyEmail(req.body);
+  res.status(200).json({
+    result,
+    message: 'Verify email suscess'
+  });
+};
+
 export default {
   loginController,
   registerController,
-  logoutController
+  logoutController,
+  verifyEmailController
 };
