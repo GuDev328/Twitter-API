@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { body, checkSchema } from 'express-validator';
 import { request } from 'http';
 import { JwtPayload } from 'jsonwebtoken';
+import { ObjectId } from 'mongodb';
 import { TokenType } from '~/constants/enum';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
@@ -248,7 +249,19 @@ export const verifyForgotPasswordValidator = validate(
                 status: 401
               });
             }
-            req.body.forgotPasswordToken = decodeForgotPasswordToken;
+            const user = await db.users.findOne({ _id: new ObjectId(decodeForgotPasswordToken.payload.userId) });
+            if (!user) {
+              throw new ErrorWithStatus({
+                status: httpStatus.UNAUTHORIZED,
+                message: 'User not found'
+              });
+            }
+            if (value !== user.forgotPasswordToken) {
+              throw new ErrorWithStatus({
+                status: httpStatus.UNAUTHORIZED,
+                message: 'forgotPasswordToken do not match'
+              });
+            }
             return true;
           }
         }
