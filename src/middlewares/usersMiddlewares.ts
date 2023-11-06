@@ -230,3 +230,30 @@ export const forgotPasswordValidator = validate(
     }
   })
 );
+
+export const verifyForgotPasswordValidator = validate(
+  checkSchema(
+    {
+      forgotPasswordToken: {
+        notEmpty: {
+          errorMessage: 'forgotPasswordToken is required'
+        },
+        custom: {
+          options: async (value: string, { req }) => {
+            const forgotPasswordToken = req.body.forgotPasswordToken;
+            const decodeForgotPasswordToken = await verifyToken(forgotPasswordToken);
+            if (decodeForgotPasswordToken.payload.type !== TokenType.FogotPasswordToken) {
+              throw new ErrorWithStatus({
+                message: 'Type of token is not valid',
+                status: 401
+              });
+            }
+            req.body.forgotPasswordToken = decodeForgotPasswordToken;
+            return true;
+          }
+        }
+      }
+    },
+    ['body']
+  )
+);

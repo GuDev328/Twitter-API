@@ -5,7 +5,8 @@ import {
   logoutController,
   registerController,
   resendVerifyEmailController,
-  verifyEmailController
+  verifyEmailController,
+  verifyForgotPasswordController
 } from '~/controllers/usersControllers';
 import {
   accessTokenValidator,
@@ -13,7 +14,8 @@ import {
   loginValidator,
   refreshTokenValidator,
   registerValidator,
-  verifyEmailValidator
+  verifyEmailValidator,
+  verifyForgotPasswordValidator
 } from '~/middlewares/usersMiddlewares';
 import { catchError } from '~/utils/handler';
 const router = Router();
@@ -24,5 +26,6 @@ router.post('/logout', accessTokenValidator, refreshTokenValidator, catchError(l
 router.post('/verify-email', accessTokenValidator, verifyEmailValidator, catchError(verifyEmailController));
 router.post('/resend-verify-email', accessTokenValidator, catchError(resendVerifyEmailController));
 router.post('/forgot-password', forgotPasswordValidator, catchError(forgotPasswordController));
+router.post('/verify-forgot-password', verifyForgotPasswordValidator, catchError(verifyForgotPasswordController));
 
 export default router;

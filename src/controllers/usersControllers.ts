@@ -62,3 +62,9 @@ export const forgotPasswordController = async (
     message: 'Forgot password sucess'
   });
 };
+
+export const verifyForgotPasswordController = async (req: Request, res: Response) => {
+  res.status(200).json({
+    message: 'Verify forgot password sucess'
+  });
+};
