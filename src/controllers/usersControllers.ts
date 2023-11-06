@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
-import { JwtPayload } from 'jsonwebtoken';
 import {
+  ForgotPasswordRequest,
   LoginRequest,
   LogoutRequest,
   RegisterRequest,
@@ -49,5 +49,16 @@ export const resendVerifyEmailController = async (
   res.status(200).json({
     result,
     message: 'Resend verify email suscess'
+  });
+};
+
+export const forgotPasswordController = async (
+  req: Request<ParamsDictionary, any, ForgotPasswordRequest>,
+  res: Response
+) => {
+  const result = await userService.forgotPassword(req.body);
+  res.status(200).json({
+    result,
+    message: 'Forgot password sucess'
   });
 };

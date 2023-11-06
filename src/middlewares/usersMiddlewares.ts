@@ -207,3 +207,26 @@ export const verifyEmailValidator = validate(
     }
   })
 );
+
+export const forgotPasswordValidator = validate(
+  checkSchema({
+    email: {
+      isEmail: { errorMessage: 'Must be a valid email' },
+      trim: true,
+      notEmpty: { errorMessage: 'Missing required email' },
+      custom: {
+        options: async (value, { req }) => {
+          const user = await usersService.checkEmailExists(value);
+          if (!user) {
+            throw new ErrorWithStatus({
+              status: httpStatus.NOT_FOUND,
+              message: 'User not found'
+            });
+          }
+          req.body.user = user;
+          return true;
+        }
+      }
+    }
+  })
+);

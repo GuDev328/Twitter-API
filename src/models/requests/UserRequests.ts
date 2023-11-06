@@ -1,4 +1,5 @@
 import { JwtPayload } from 'jsonwebtoken';
+import User from '../schemas/UserSchema';
 
 export interface RegisterRequest {
   name: string;
@@ -24,4 +25,9 @@ export interface VerifyEmailRequest {
 
 export interface ResendVerifyEmailRequest {
   decodeAuthorization: JwtPayload;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+  user: User;
 }

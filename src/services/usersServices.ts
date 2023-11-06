@@ -1,4 +1,5 @@
 import {
+  ForgotPasswordRequest,
   LoginRequest,
   LogoutRequest,
   RegisterRequest,
@@ -51,6 +52,15 @@ class UsersService {
       payload: {
         userId,
         type: TokenType.VerifyEmailToken
+      }
+    });
+  }
+
+  signForgotPasswordToken(userId: string) {
+    return signToken({
+      payload: {
+        userId,
+        type: TokenType.FogotPasswordToken
       }
     });
   }
@@ -187,6 +197,16 @@ class UsersService {
     const save = await db.users.updateOne({ _id: new ObjectId(userId) }, [
       {
         $set: { emailVerifyToken, updated_at: '$$NOW' }
+      }
+    ]);
+    return;
+  }
+
+  async forgotPassword(payload: ForgotPasswordRequest) {
+    const forgotPasswordToken = await this.signForgotPasswordToken(payload.user._id.toString());
+    const save = await db.users.updateOne({ _id: payload.user._id }, [
+      {
+        $set: { forgotPasswordToken, updated_at: '$$NOW' }
       }
     ]);
     return;

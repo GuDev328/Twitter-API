@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  forgotPasswordController,
   loginController,
   logoutController,
   registerController,
@@ -8,6 +9,7 @@ import {
 } from '~/controllers/usersControllers';
 import {
   accessTokenValidator,
+  forgotPasswordValidator,
   loginValidator,
   refreshTokenValidator,
   registerValidator,
@@ -21,5 +23,6 @@ router.post('/register', registerValidator, catchError(registerController));
 router.post('/logout', accessTokenValidator, refreshTokenValidator, catchError(logoutController));
 router.post('/verify-email', accessTokenValidator, verifyEmailValidator, catchError(verifyEmailController));
 router.post('/resend-verify-email', accessTokenValidator, catchError(resendVerifyEmailController));
+router.post('/forgot-password', forgotPasswordValidator, catchError(forgotPasswordController));
 
 export default router;
