@@ -1,21 +1,25 @@
 import { Router } from 'express';
-import usersMiddlewares from '~/middlewares/usersMiddlewares';
-import usersController from '~/controllers/usersControllers';
+import {
+  loginController,
+  logoutController,
+  registerController,
+  resendVerifyEmailController,
+  verifyEmailController
+} from '~/controllers/usersControllers';
+import {
+  accessTokenValidator,
+  loginValidator,
+  refreshTokenValidator,
+  registerValidator,
+  verifyEmailValidator
+} from '~/middlewares/usersMiddlewares';
 import { catchError } from '~/utils/handler';
 const router = Router();
 
-router.post('/login', usersMiddlewares.loginValidator, catchError(usersController.loginController));
-router.post('/register', usersMiddlewares.registerValidator, catchError(usersController.registerController));
-router.post(
-  '/logout',
-  usersMiddlewares.accessTokenValidator,
-  usersMiddlewares.refreshTokenValidator,
-  catchError(usersController.logoutController)
-);
-router.post(
-  '/verify-email',
-  usersMiddlewares.accessTokenValidator,
-  usersMiddlewares.verifyEmailValidator,
-  catchError(usersController.verifyEmailController)
-);
+router.post('/login', loginValidator, catchError(loginController));
+router.post('/register', registerValidator, catchError(registerController));
+router.post('/logout', accessTokenValidator, refreshTokenValidator, catchError(logoutController));
+router.post('/verify-email', accessTokenValidator, verifyEmailValidator, catchError(verifyEmailController));
+router.post('/resend-verify-email', accessTokenValidator, catchError(resendVerifyEmailController));
+
 export default router;

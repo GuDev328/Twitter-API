@@ -10,7 +10,7 @@ import usersService from '~/services/usersServices';
 import { verifyToken } from '~/utils/jwt';
 import { validate } from '~/utils/validation';
 
-const accessTokenValidator = validate(
+export const accessTokenValidator = validate(
   checkSchema(
     {
       authorization: {
@@ -27,7 +27,7 @@ const accessTokenValidator = validate(
               });
             } else {
               const decodeAuthorization = await verifyToken(accessToken);
-              req.decodeAuthorization = decodeAuthorization;
+              req.body.decodeAuthorization = decodeAuthorization;
               if (decodeAuthorization.payload.type !== TokenType.AccessToken) {
                 throw new ErrorWithStatus({
                   message: 'Type of token is not valid',
@@ -45,7 +45,7 @@ const accessTokenValidator = validate(
   )
 );
 
-const refreshTokenValidator = validate(
+export const refreshTokenValidator = validate(
   checkSchema(
     {
       refreshToken: {
@@ -88,7 +88,7 @@ const refreshTokenValidator = validate(
   )
 );
 
-const loginValidator = validate(
+export const loginValidator = validate(
   checkSchema(
     {
       email: {
@@ -111,7 +111,7 @@ const loginValidator = validate(
   )
 );
 
-const registerValidator = validate(
+export const registerValidator = validate(
   checkSchema(
     {
       name: {
@@ -179,7 +179,7 @@ const registerValidator = validate(
   )
 );
 
-const verifyEmailValidator = validate(
+export const verifyEmailValidator = validate(
   checkSchema({
     emailVerifyToken: {
       custom: {
@@ -207,11 +207,3 @@ const verifyEmailValidator = validate(
     }
   })
 );
-
-export default {
-  verifyEmailValidator,
-  loginValidator,
-  registerValidator,
-  accessTokenValidator,
-  refreshTokenValidator
-};

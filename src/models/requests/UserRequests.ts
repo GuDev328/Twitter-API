@@ -21,3 +21,7 @@ export interface VerifyEmailRequest {
   emailVerifyToken: string;
   decodeEmailVerifyToken: JwtPayload;
 }
+
+export interface ResendVerifyEmailRequest {
+  decodeAuthorization: JwtPayload;
+}
