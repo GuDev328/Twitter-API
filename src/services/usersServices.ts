@@ -4,6 +4,7 @@ import {
   LogoutRequest,
   RegisterRequest,
   ResendVerifyEmailRequest,
+  ResetPasswordRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
 import bcrypt from 'bcrypt';
@@ -209,6 +210,18 @@ class UsersService {
         $set: { forgotPasswordToken, updated_at: '$$NOW' }
       }
     ]);
+    return;
+  }
+
+  async resetPassword(payload: ResetPasswordRequest) {
+    const saltRounds = 10;
+    const password = await bcrypt.hashSync(payload.password, saltRounds);
+    const save = await db.users.updateOne(
+      { _id: payload.user._id },
+      {
+        $set: { password, forgotPasswordToken: '', updated_at: new Date() }
+      }
+    );
     return;
   }
 }

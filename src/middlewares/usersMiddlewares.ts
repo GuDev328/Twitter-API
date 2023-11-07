@@ -249,6 +249,7 @@ export const verifyForgotPasswordValidator = validate(
                 status: 401
               });
             }
+
             const user = await db.users.findOne({ _id: new ObjectId(decodeForgotPasswordToken.payload.userId) });
             if (!user) {
               throw new ErrorWithStatus({
@@ -262,6 +263,7 @@ export const verifyForgotPasswordValidator = validate(
                 message: 'forgotPasswordToken do not match'
               });
             }
+            req.body.user = user;
             return true;
           }
         }
@@ -269,4 +271,37 @@ export const verifyForgotPasswordValidator = validate(
     },
     ['body']
   )
+);
+
+export const resetPasswordValidator = validate(
+  checkSchema({
+    password: {
+      notEmpty: {
+        errorMessage: 'Missing required password'
+      },
+      trim: true,
+      isLength: {
+        options: { min: 6, max: 50 },
+        errorMessage: 'Length of password must be from 6 to 50'
+      }
+    },
+    confirmPassword: {
+      notEmpty: {
+        errorMessage: 'Missing required confirm password'
+      },
+      trim: true,
+      isLength: {
+        options: { min: 6, max: 50 },
+        errorMessage: 'Length of confirm password must be from 6 to 50'
+      },
+      custom: {
+        options: (value, { req }) => {
+          if (value !== req.body.password) {
+            throw new Error('Passwords do not match');
+          }
+          return true;
+        }
+      }
+    }
+  })
 );

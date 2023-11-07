@@ -31,3 +31,9 @@ export interface ForgotPasswordRequest {
   email: string;
   user: User;
 }
+
+export interface ResetPasswordRequest {
+  password: string;
+  confirmPassword: string;
+  user: User;
+}

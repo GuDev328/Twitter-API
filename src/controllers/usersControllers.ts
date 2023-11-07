@@ -1,3 +1,4 @@
+import exp from 'constants';
 import { Request, Response, NextFunction } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import {
@@ -6,6 +7,7 @@ import {
   LogoutRequest,
   RegisterRequest,
   ResendVerifyEmailRequest,
+  ResetPasswordRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
 import userService from '~/services/usersServices';
@@ -66,5 +68,16 @@ export const forgotPasswordController = async (
 export const verifyForgotPasswordController = async (req: Request, res: Response) => {
   res.status(200).json({
     message: 'Verify forgot password sucess'
+  });
+};
+
+export const resetPasswordController = async (
+  req: Request<ParamsDictionary, any, ResetPasswordRequest>,
+  res: Response
+) => {
+  const result = await userService.resetPassword(req.body);
+  res.status(200).json({
+    result,
+    message: 'Reset password sucess'
   });
 };
