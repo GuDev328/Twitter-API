@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import {
   ForgotPasswordRequest,
+  GetMeRequest,
   LoginRequest,
   LogoutRequest,
   RegisterRequest,
@@ -79,5 +80,13 @@ export const resetPasswordController = async (
   res.status(200).json({
     result,
     message: 'Reset password sucess'
+  });
+};
+
+export const getMeController = async (req: Request<ParamsDictionary, any, GetMeRequest>, res: Response) => {
+  const result = await userService.getMe(req.body);
+  res.status(200).json({
+    result,
+    message: 'Get me sucess'
   });
 };

@@ -37,3 +37,7 @@ export interface ResetPasswordRequest {
   confirmPassword: string;
   user: User;
 }
+
+export interface GetMeRequest {
+  decodeAuthorization: JwtPayload;
+}

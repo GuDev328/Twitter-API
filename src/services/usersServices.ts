@@ -1,5 +1,6 @@
 import {
   ForgotPasswordRequest,
+  GetMeRequest,
   LoginRequest,
   LogoutRequest,
   RegisterRequest,
@@ -223,6 +224,21 @@ class UsersService {
       }
     );
     return;
+  }
+
+  async getMe(payload: GetMeRequest) {
+    const userId = payload.decodeAuthorization.payload.userId;
+    const user = await db.users.findOne(
+      { _id: new ObjectId(userId) },
+      {
+        projection: {
+          password: 0,
+          emailVerifyToken: 0,
+          forgotPasswordToken: 0
+        }
+      }
+    );
+    return user;
   }
 }
 

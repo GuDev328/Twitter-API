@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   forgotPasswordController,
+  getMeController,
   loginController,
   logoutController,
   registerController,
@@ -35,4 +36,6 @@ router.post(
   verifyForgotPasswordValidator,
   catchError(resetPasswordController)
 );
+router.post('/get-me', accessTokenValidator, catchError(getMeController));
+
 export default router;
