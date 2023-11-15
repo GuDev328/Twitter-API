@@ -6,6 +6,7 @@ import {
   RegisterRequest,
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
+  UpdateMeRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
 import bcrypt from 'bcrypt';
@@ -21,12 +22,13 @@ import { httpStatus } from '~/constants/httpStatus';
 
 class UsersService {
   constructor() {}
-  signAccessToken(userId: string) {
+  signAccessToken(userId: string, verify: UserVerifyStatus) {
     return signToken(
       {
         payload: {
           userId,
-          type: TokenType.AccessToken
+          type: TokenType.AccessToken,
+          verify
         }
       },
       {
@@ -78,7 +80,7 @@ class UsersService {
       const checkPassword = await bcrypt.compareSync(payload.password, user.password);
       if (checkPassword) {
         const [accessToken, refreshToken] = await Promise.all([
-          this.signAccessToken(user._id.toString()),
+          this.signAccessToken(user._id.toString(), user.verify),
           this.signRefreshToken(user._id.toString())
         ]);
 
@@ -115,7 +117,7 @@ class UsersService {
     );
     const userId = result.insertedId.toString();
     const [accessToken, refreshToken, emailVerifyToken] = await Promise.all([
-      this.signAccessToken(userId),
+      this.signAccessToken(userId, UserVerifyStatus.Unverified),
       this.signRefreshToken(userId),
       this.signEmailVerifyToken(userId)
     ]);
@@ -235,6 +237,33 @@ class UsersService {
           password: 0,
           emailVerifyToken: 0,
           forgotPasswordToken: 0
+        }
+      }
+    );
+    return user;
+  }
+
+  async updateMe(payload: UpdateMeRequest) {
+    const userId = payload.decodeAuthorization.payload.userId;
+    const { decodeAuthorization, ...payloadWithOutJWT } = payload;
+    const newPayload = payload.date_of_birth
+      ? { ...payloadWithOutJWT, date_of_birth: new Date(payload.date_of_birth) }
+      : payloadWithOutJWT;
+    const user = await db.users.findOneAndUpdate(
+      {
+        _id: new ObjectId(userId)
+      },
+      {
+        $set: {
+          ...(newPayload as UpdateMeRequest & { date_of_birth: Date })
+        }
+      },
+      {
+        returnDocument: 'after',
+        projection: {
+          emailVerifyToken: 0,
+          forgotPasswordToken: 0,
+          password: 0
         }
       }
     );

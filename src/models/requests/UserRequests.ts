@@ -41,3 +41,15 @@ export interface ResetPasswordRequest {
 export interface GetMeRequest {
   decodeAuthorization: JwtPayload;
 }
+
+export interface UpdateMeRequest {
+  decodeAuthorization: JwtPayload;
+  name?: string;
+  date_of_birth?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  username?: string;
+  avatar?: string;
+  cover_photo?: string;
+}

@@ -3,7 +3,7 @@ import { body, checkSchema } from 'express-validator';
 import { request } from 'http';
 import { JwtPayload } from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
-import { TokenType } from '~/constants/enum';
+import { TokenType, UserVerifyStatus } from '~/constants/enum';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import db from '~/services/databaseServices';
@@ -302,6 +302,74 @@ export const resetPasswordValidator = validate(
           return true;
         }
       }
+    }
+  })
+);
+
+export const verifiedUserValidator = (req: Request, res: Response, next: NextFunction) => {
+  const { verify } = req.body.decodeAuthorization.payload;
+  if (verify !== UserVerifyStatus.Verified) {
+    return next(
+      new ErrorWithStatus({
+        message: 'User not Verified',
+        status: httpStatus.FORBIDDEN
+      })
+    );
+  }
+  next();
+};
+
+export const updateMeValidator = validate(
+  checkSchema({
+    name: {
+      optional: true,
+      isLength: {
+        options: { min: 1, max: 100 },
+        errorMessage: 'Length of name must be between 1 and 100'
+      },
+      isString: true,
+      notEmpty: {
+        errorMessage: 'Missing required name'
+      },
+      trim: true
+    },
+    date_of_birth: {
+      optional: true,
+      isISO8601: { options: { strict: true, strictSeparator: true } }
+    },
+    bio: {
+      optional: true,
+      isString: { errorMessage: 'Bio must be a string' },
+      isLength: {
+        options: { min: 1, max: 200 },
+        errorMessage: 'Length of bio must be between 1 and 200'
+      }
+    },
+    location: {
+      optional: true,
+      isString: { errorMessage: 'Location must be a string' }
+    },
+    website: {
+      optional: true,
+      isURL: { errorMessage: 'Website must be a URL' }
+    },
+    username: {
+      optional: true,
+      isString: { errorMessage: 'Username must be a string' },
+      isLength: {
+        options: { min: 1, max: 25 },
+        errorMessage: 'Length of username must be between 1 and 200'
+      }
+    },
+    avatar: {
+      optional: true,
+      isURL: { errorMessage: 'Avatar must be a URL' },
+      trim: true
+    },
+    cover_photo: {
+      optional: true,
+      isURL: { errorMessage: 'Cover photo must be a URL' },
+      trim: true
     }
   })
 );

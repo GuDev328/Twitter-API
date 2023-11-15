@@ -7,6 +7,7 @@ import {
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
+  updateMeController,
   verifyEmailController,
   verifyForgotPasswordController
 } from '~/controllers/usersControllers';
@@ -17,6 +18,8 @@ import {
   refreshTokenValidator,
   registerValidator,
   resetPasswordValidator,
+  updateMeValidator,
+  verifiedUserValidator,
   verifyEmailValidator,
   verifyForgotPasswordValidator
 } from '~/middlewares/usersMiddlewares';
@@ -37,5 +40,12 @@ router.post(
   catchError(resetPasswordController)
 );
 router.post('/get-me', accessTokenValidator, catchError(getMeController));
+router.patch(
+  '/update-me',
+  accessTokenValidator,
+  verifiedUserValidator,
+  updateMeValidator,
+  catchError(updateMeController)
+);
 
 export default router;

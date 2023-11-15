@@ -9,6 +9,7 @@ import {
   RegisterRequest,
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
+  UpdateMeRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
 import userService from '~/services/usersServices';
@@ -88,5 +89,13 @@ export const getMeController = async (req: Request<ParamsDictionary, any, GetMeR
   res.status(200).json({
     result,
     message: 'Get me sucess'
+  });
+};
+
+export const updateMeController = async (req: Request<ParamsDictionary, any, UpdateMeRequest>, res: Response) => {
+  const result = await userService.updateMe(req.body);
+  res.status(200).json({
+    result,
+    message: 'Update me sucess'
   });
 };
