@@ -11,6 +11,7 @@ import {
   verifyEmailController,
   verifyForgotPasswordController
 } from '~/controllers/usersControllers';
+import { filterMiddleware } from '~/middlewares/commonMidware';
 import {
   accessTokenValidator,
   forgotPasswordValidator,
@@ -23,6 +24,7 @@ import {
   verifyEmailValidator,
   verifyForgotPasswordValidator
 } from '~/middlewares/usersMiddlewares';
+import { UpdateMeRequest } from '~/models/requests/UserRequests';
 import { catchError } from '~/utils/handler';
 const router = Router();
 
@@ -45,6 +47,17 @@ router.patch(
   accessTokenValidator,
   verifiedUserValidator,
   updateMeValidator,
+  filterMiddleware<UpdateMeRequest>([
+    'decodeAuthorization',
+    'name',
+    'date_of_birth',
+    'bio',
+    'location',
+    'website',
+    'username',
+    'avatar',
+    'cover_photo'
+  ]),
   catchError(updateMeController)
 );
 
