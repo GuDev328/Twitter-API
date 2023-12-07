@@ -1,4 +1,5 @@
 import {
+  FollowRequest,
   ForgotPasswordRequest,
   GetMeRequest,
   LoginRequest,
@@ -6,6 +7,7 @@ import {
   RegisterRequest,
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
+  UnfollowRequest,
   UpdateMeRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
@@ -19,6 +21,7 @@ import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 import { ObjectId } from 'mongodb';
 import { JwtPayload } from 'jsonwebtoken';
 import { httpStatus } from '~/constants/httpStatus';
+import Follower from '~/models/schemas/FollowerSchema';
 
 class UsersService {
   constructor() {}
@@ -147,6 +150,13 @@ class UsersService {
     } else return false;
   }
 
+  async checkUserIdExists(userId: string) {
+    const user = await db.users.findOne({ _id: new ObjectId(userId) });
+    if (user) {
+      return user;
+    } else return false;
+  }
+
   async logout(payload: LogoutRequest) {
     const deleteRefresh = await db.refreshTokens.deleteOne({ token: payload.refreshToken });
     return;
@@ -268,6 +278,34 @@ class UsersService {
       }
     );
     return user;
+  }
+
+  async follow(payload: FollowRequest) {
+    const userId = payload.decodeAuthorization.payload.userId;
+    const followedUserId = new ObjectId(payload.userId);
+    const result = await db.followers.insertOne(
+      new Follower({
+        user_id: userId,
+        followed_user_id: followedUserId,
+        created_at: new Date()
+      })
+    );
+  }
+
+  async unfollow(payload: UnfollowRequest) {
+    const userId = payload.decodeAuthorization.payload.userId;
+    const followedUserId = new ObjectId(payload.userId);
+    const result = await db.followers.deleteOne({
+      user_id: userId,
+      followed_user_id: followedUserId
+    });
+    if (result.deletedCount === 0) {
+      throw new ErrorWithStatus({
+        message: 'This user is not followed yet',
+        status: httpStatus.NOT_FOUND
+      });
+    }
+    return result;
   }
 }
 

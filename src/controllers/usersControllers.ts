@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { pick } from 'lodash';
 import {
+  FollowRequest,
   ForgotPasswordRequest,
   GetMeRequest,
   LoginRequest,
@@ -10,6 +11,7 @@ import {
   RegisterRequest,
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
+  UnfollowRequest,
   UpdateMeRequest,
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
@@ -98,5 +100,21 @@ export const updateMeController = async (req: Request<ParamsDictionary, any, Upd
   res.status(200).json({
     result,
     message: 'Update me sucess'
+  });
+};
+
+export const followController = async (req: Request<ParamsDictionary, any, FollowRequest>, res: Response) => {
+  const result = await userService.follow(req.body);
+  res.status(200).json({
+    result,
+    message: 'Follow sucess'
+  });
+};
+
+export const unfollowController = async (req: Request<ParamsDictionary, any, UnfollowRequest>, res: Response) => {
+  const result = await userService.unfollow(req.body);
+  res.status(200).json({
+    result,
+    message: 'Unfollow sucess'
   });
 };

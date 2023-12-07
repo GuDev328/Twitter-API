@@ -53,3 +53,13 @@ export interface UpdateMeRequest {
   avatar?: string;
   cover_photo?: string;
 }
+
+export interface FollowRequest {
+  decodeAuthorization: JwtPayload;
+  userId: string;
+}
+
+export interface UnfollowRequest {
+  decodeAuthorization: JwtPayload;
+  userId: string;
+}
