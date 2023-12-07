@@ -150,6 +150,13 @@ class UsersService {
     } else return false;
   }
 
+  async checkUsernameExists(username: string) {
+    const user = await db.users.findOne({ username });
+    if (user) {
+      return user;
+    } else return false;
+  }
+
   async checkUserIdExists(userId: string) {
     const user = await db.users.findOne({ _id: new ObjectId(userId) });
     if (user) {

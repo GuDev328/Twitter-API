@@ -144,6 +144,21 @@ export const registerValidator = validate(
           }
         }
       },
+      username: {
+        notEmpty: {
+          errorMessage: 'Missing required username'
+        },
+        trim: true,
+        custom: {
+          options: async (value: string) => {
+            const result = await usersService.checkUsernameExists(value);
+            if (result) {
+              throw new Error('Username already exists');
+            }
+            return true;
+          }
+        }
+      },
       password: {
         notEmpty: {
           errorMessage: 'Missing required password'
@@ -359,6 +374,15 @@ export const updateMeValidator = validate(
       isLength: {
         options: { min: 1, max: 25 },
         errorMessage: 'Length of username must be between 1 and 200'
+      },
+      custom: {
+        options: async (value: string) => {
+          const result = await usersService.checkUsernameExists(value);
+          if (result) {
+            throw new Error('Username already exists');
+          }
+          return true;
+        }
       }
     },
     avatar: {
@@ -401,12 +425,12 @@ export const unfollowValidator = validate(
       custom: {
         options: async (value, { req }) => {
           const user = await usersService.checkUserIdExists(value);
-          // if (!user) {
-          //   throw new ErrorWithStatus({
-          //     status: httpStatus.NOT_FOUND,
-          //     message: 'User not found'
-          //   });
-          // }
+          if (!user) {
+            throw new ErrorWithStatus({
+              status: httpStatus.NOT_FOUND,
+              message: 'User not found'
+            });
+          }
           return true;
         }
       }

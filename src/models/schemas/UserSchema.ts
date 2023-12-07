@@ -16,7 +16,7 @@ interface UserType {
   bio?: string;
   location?: string;
   website?: string;
-  username?: string;
+  username: string;
   avatar?: string;
   cover_photo?: string;
 }
