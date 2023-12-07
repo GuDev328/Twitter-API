@@ -437,3 +437,42 @@ export const unfollowValidator = validate(
     }
   })
 );
+
+export const changePasswordValidator = validate(
+  checkSchema({
+    oldPassword: {
+      notEmpty: {
+        errorMessage: 'Missing required password'
+      },
+      trim: true
+    },
+    newPassword: {
+      notEmpty: {
+        errorMessage: 'Missing required new password'
+      },
+      trim: true,
+      isLength: {
+        options: { min: 6, max: 50 },
+        errorMessage: 'Length of password must be from 6 to 50'
+      }
+    },
+    confirmPassword: {
+      notEmpty: {
+        errorMessage: 'Missing required confirm password'
+      },
+      trim: true,
+      isLength: {
+        options: { min: 6, max: 50 },
+        errorMessage: 'Length of confirm password must be from 6 to 50'
+      },
+      custom: {
+        options: (value, { req }) => {
+          if (value !== req.body.newPassword) {
+            throw new Error('Passwords do not match');
+          }
+          return true;
+        }
+      }
+    }
+  })
+);

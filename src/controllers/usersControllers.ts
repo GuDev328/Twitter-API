@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { pick } from 'lodash';
 import {
+  ChangePasswordRequest,
   FollowRequest,
   ForgotPasswordRequest,
   GetMeRequest,
@@ -116,5 +117,16 @@ export const unfollowController = async (req: Request<ParamsDictionary, any, Unf
   res.status(200).json({
     result,
     message: 'Unfollow sucess'
+  });
+};
+
+export const changePasswordController = async (
+  req: Request<ParamsDictionary, any, ChangePasswordRequest>,
+  res: Response
+) => {
+  const result = await userService.changePassword(req.body);
+  res.status(200).json({
+    result,
+    message: 'ChangePassword sucess'
   });
 };

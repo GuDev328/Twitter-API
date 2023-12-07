@@ -64,3 +64,10 @@ export interface UnfollowRequest {
   decodeAuthorization: JwtPayload;
   userId: string;
 }
+
+export interface ChangePasswordRequest {
+  decodeAuthorization: JwtPayload;
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

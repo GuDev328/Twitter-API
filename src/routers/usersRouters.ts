@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {
+  changePasswordController,
   followController,
   forgotPasswordController,
   getMeController,
@@ -16,6 +17,7 @@ import {
 import { filterMiddleware } from '~/middlewares/commonMidware';
 import {
   accessTokenValidator,
+  changePasswordValidator,
   followValidator,
   forgotPasswordValidator,
   loginValidator,
@@ -73,4 +75,6 @@ router.post(
   unfollowValidator,
   catchError(unfollowController)
 );
+
+router.post('/change-password', accessTokenValidator, changePasswordValidator, catchError(changePasswordController));
 export default router;

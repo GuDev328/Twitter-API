@@ -1,4 +1,5 @@
 import {
+  ChangePasswordRequest,
   FollowRequest,
   ForgotPasswordRequest,
   GetMeRequest,
@@ -313,6 +314,41 @@ class UsersService {
       });
     }
     return result;
+  }
+
+  async changePassword(payload: ChangePasswordRequest) {
+    const userId = payload.decodeAuthorization.payload.userId;
+    const oldPassword = payload.oldPassword;
+    const newPassword = payload.newPassword;
+
+    const user = await db.users.findOne({ _id: new ObjectId(userId) });
+    if (!user) {
+      throw new ErrorWithStatus({
+        message: 'User not found',
+        status: httpStatus.NOT_FOUND
+      });
+    }
+    const checkPassword = await bcrypt.compareSync(oldPassword, user.password);
+    if (!checkPassword) {
+      throw new ErrorWithStatus({
+        message: 'Password incorrect',
+        status: httpStatus.UNAUTHORIZED
+      });
+    } else {
+      const saltRounds = 10;
+      const password = await bcrypt.hashSync(newPassword, saltRounds);
+      const save = await db.users.findOneAndUpdate(
+        {
+          _id: new ObjectId(userId)
+        },
+        {
+          $set: {
+            password
+          }
+        }
+      );
+      return;
+    }
   }
 }
 
