@@ -67,7 +67,7 @@ export const refreshTokenValidator = validate(
                   status: httpStatus.UNAUTHORIZED
                 });
               }
-              req.decodeRefreshToken = decodeRefreshToken;
+              req.body.decodeRefreshToken = decodeRefreshToken;
               if (decodeRefreshToken.payload.type !== TokenType.RefreshToken) {
                 throw new ErrorWithStatus({
                   message: 'Type of token is not valid',

@@ -6,6 +6,7 @@ import {
   getMeController,
   loginController,
   logoutController,
+  refreshTokenController,
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
@@ -37,6 +38,7 @@ const router = Router();
 router.post('/login', loginValidator, catchError(loginController));
 router.post('/register', registerValidator, catchError(registerController));
 router.post('/logout', accessTokenValidator, refreshTokenValidator, catchError(logoutController));
+router.post('/refresh-token', accessTokenValidator, refreshTokenValidator, catchError(refreshTokenController));
 router.post('/verify-email', accessTokenValidator, verifyEmailValidator, catchError(verifyEmailController));
 router.post('/resend-verify-email', accessTokenValidator, catchError(resendVerifyEmailController));
 router.post('/forgot-password', forgotPasswordValidator, catchError(forgotPasswordController));

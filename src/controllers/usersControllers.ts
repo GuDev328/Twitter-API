@@ -9,6 +9,7 @@ import {
   GetMeRequest,
   LoginRequest,
   LogoutRequest,
+  RefreshTokenRequest,
   RegisterRequest,
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
@@ -38,6 +39,17 @@ export const logoutController = async (req: Request<ParamsDictionary, any, Logou
   const result = await userService.logout(req.body);
   res.status(200).json({
     message: 'Logout suscess'
+  });
+};
+
+export const refreshTokenController = async (
+  req: Request<ParamsDictionary, any, RefreshTokenRequest>,
+  res: Response
+) => {
+  const result = await userService.refreshToken(req.body);
+  res.status(200).json({
+    result,
+    message: 'refresh Token suscess'
   });
 };
 

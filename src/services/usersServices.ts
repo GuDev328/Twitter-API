@@ -5,6 +5,7 @@ import {
   GetMeRequest,
   LoginRequest,
   LogoutRequest,
+  RefreshTokenRequest,
   RegisterRequest,
   ResendVerifyEmailRequest,
   ResetPasswordRequest,
@@ -136,6 +137,27 @@ class UsersService {
     const saveEmailVerifyToken = await db.users.updateOne(
       { _id: new ObjectId(userId) },
       { $set: { emailVerifyToken: emailVerifyToken } }
+    );
+
+    return {
+      accessToken,
+      refreshToken
+    };
+  }
+
+  async refreshToken(payload: RefreshTokenRequest) {
+    const oldToken = await db.refreshTokens.deleteOne({ token: payload.refreshToken });
+    const [accessToken, refreshToken] = await Promise.all([
+      this.signAccessToken(payload.decodeAuthorization.payload.userId, payload.decodeAuthorization.payload.verify),
+      this.signRefreshToken(payload.decodeAuthorization.payload.userId)
+    ]);
+
+    const saveRefreshToken = await db.refreshTokens.insertOne(
+      new RefreshToken({
+        token: refreshToken,
+        created_at: new Date(),
+        user_id: new ObjectId(payload.decodeAuthorization.payload.userId)
+      })
     );
 
     return {

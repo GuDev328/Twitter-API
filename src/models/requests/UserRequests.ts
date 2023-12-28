@@ -19,6 +19,12 @@ export interface LogoutRequest {
   refreshToken: string;
 }
 
+export interface RefreshTokenRequest {
+  decodeAuthorization: JwtPayload;
+  decodeRefreshToken: JwtPayload;
+  refreshToken: string;
+}
+
 export interface VerifyEmailRequest {
   emailVerifyToken: string;
   decodeEmailVerifyToken: JwtPayload;
