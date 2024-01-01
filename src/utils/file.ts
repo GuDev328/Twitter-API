@@ -2,11 +2,12 @@ import path from 'path';
 import { Request, Response } from 'express';
 import { ErrorWithStatus } from '~/models/Errors';
 import { httpStatus } from '~/constants/httpStatus';
+import { File } from 'formidable';
 
 export const handleUploadSingleImage = async (req: Request) => {
   const formidable = (await import('formidable')).default;
   const form = formidable({
-    uploadDir: path.resolve('uploads'),
+    uploadDir: path.resolve('uploads/temp'),
     maxFiles: 1,
     keepExtensions: true,
     maxFileSize: 20 * 1024 * 1024, // 100mb
@@ -24,8 +25,8 @@ export const handleUploadSingleImage = async (req: Request) => {
       return valid;
     }
   });
-  return new Promise((resolve, reject) => {
-    form.parse(req, async (err, fields, files) => {
+  return new Promise<File>((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
       if (err) {
         reject(err);
       }
@@ -37,7 +38,7 @@ export const handleUploadSingleImage = async (req: Request) => {
           }) as any
         );
       }
-      resolve(files);
+      resolve((files.image as File[])[0]);
     });
   });
 };
