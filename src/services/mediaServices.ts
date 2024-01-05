@@ -2,21 +2,35 @@ import { Request } from 'express';
 import path from 'path';
 import sharp from 'sharp';
 import db from '~/services/databaseServices';
-import { handleUploadSingleImage } from '~/utils/file';
+import { handleUploadImage } from '~/utils/file';
 import fs from 'fs-extra';
+import { isProduction } from '~/constants/config';
+import { config } from 'dotenv';
+import { Media, MediaType } from '~/constants/enum';
+config();
 
 class MediasService {
   constructor() {}
 
-  async handleUploadSingleImage(req: Request) {
+  async handleUploadImage(req: Request) {
     sharp.cache(false);
-    const fileUploaded = await handleUploadSingleImage(req);
-    const newPath = path.resolve('uploads') + `/${fileUploaded.newFilename.split('.')[0]}.jpg`;
-    const info = await sharp(fileUploaded.filepath).jpeg({ quality: 90 });
-    info.toFile(newPath, (err, ifo) => {
-      fs.remove(fileUploaded.filepath).catch((err) => console.log(err));
-    });
-    return `https://localhost:3030/uploads/${fileUploaded.newFilename.split('.')[0]}.jpg`;
+    const filesUploaded = await handleUploadImage(req);
+    const result: Media[] = await Promise.all(
+      filesUploaded.map(async (fileUploaded) => {
+        const newPath = path.resolve('uploads') + `/${fileUploaded.newFilename.split('.')[0]}.jpg`;
+        const info = await sharp(fileUploaded.filepath).jpeg({ quality: 90 });
+        info.toFile(newPath, (err, ifo) => {
+          fs.remove(fileUploaded.filepath).catch((err) => console.log(err));
+        });
+        return {
+          url: isProduction
+            ? `${process.env.HOST}/${fileUploaded.newFilename.split('.')[0]}.jpg`
+            : `http://localhost:${process.env.PORT}/${fileUploaded.newFilename.split('.')[0]}.jpg`,
+          type: MediaType.Image
+        };
+      })
+    );
+    return result;
   }
 }
 

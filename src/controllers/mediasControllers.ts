@@ -4,8 +4,8 @@ import formidable from 'formidable';
 import path from 'path';
 import mediasService from '~/services/mediaServices';
 
-export const uploadSingleImage = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
-  const result = await mediasService.handleUploadSingleImage(req);
+export const uploadImage = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const result = await mediasService.handleUploadImage(req);
   res.status(200).json({
     result,
     message: 'Upload image suscess'

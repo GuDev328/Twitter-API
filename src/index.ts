@@ -12,9 +12,10 @@ db.connect();
 
 const router = Router();
 app.use(express.json());
-app.use(express.static('uploads'));
+
 app.use('/users', usersRouters);
 app.use('/medias', mediasRouters);
+app.use(express.static(path.resolve('uploads')));
 app.use(defaultsErrorHandler);
-const port = 3030;
+const port = process.env.PORT || 3030;
 app.listen(port, () => console.log('API-Twitter server is running port: ' + port));
