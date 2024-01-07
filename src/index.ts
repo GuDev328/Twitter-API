@@ -15,7 +15,8 @@ app.use(express.json());
 
 app.use('/users', usersRouters);
 app.use('/medias', mediasRouters);
-app.use(express.static(path.resolve('uploads')));
+app.use('/image', express.static(path.resolve('uploads/images')));
+app.use('/video', express.static(path.resolve('uploads/videos')));
 app.use(defaultsErrorHandler);
 const port = process.env.PORT || 3030;
 app.listen(port, () => console.log('API-Twitter server is running port: ' + port));

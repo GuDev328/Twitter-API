@@ -11,3 +11,11 @@ export const uploadImage = async (req: Request<ParamsDictionary, any, any>, res:
     message: 'Upload image suscess'
   });
 };
+
+export const uploadVideo = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const result = await mediasService.handleUploadVideo(req);
+  res.status(200).json({
+    result,
+    message: 'Upload video suscess'
+  });
+};

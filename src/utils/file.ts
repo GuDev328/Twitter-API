@@ -11,7 +11,7 @@ export const handleUploadImage = async (req: Request) => {
     maxFiles: 10,
     keepExtensions: true,
     maxFileSize: 20 * 1024 * 1024, // 20MB
-    maxTotalFileSize: 200 * 1024 * 1024, // 100MB
+    maxTotalFileSize: 200 * 1024 * 1024, // 200MB
     filter: function ({ name, originalFilename, mimetype }) {
       const valid = name === 'image' && Boolean(mimetype?.includes('image/'));
       if (!valid) {
@@ -40,6 +40,47 @@ export const handleUploadImage = async (req: Request) => {
         );
       }
       resolve(files.image as File[]);
+    });
+  });
+};
+
+export const handleUploadVideo = async (req: Request) => {
+  const formidable = (await import('formidable')).default;
+  const form = formidable({
+    uploadDir: path.resolve('uploads/temp'),
+    maxFiles: 5,
+    keepExtensions: true,
+    maxFileSize: 50 * 1024 * 1024, // 50MB
+    maxTotalFileSize: 250 * 1024 * 1024, // 250MB
+    filter: function ({ name, originalFilename, mimetype }) {
+      return true;
+      // const valid = name === 'image' && Boolean(mimetype?.includes('image/'));
+      // if (!valid) {
+      //   form.emit(
+      //     'error' as any,
+      //     new ErrorWithStatus({
+      //       status: httpStatus.BAD_REQUEST,
+      //       message: 'Invalid file type'
+      //     }) as any
+      //   );
+      // }
+      // return valid;
+    }
+  });
+  return new Promise<File[]>((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        reject(err);
+      }
+      if (!files.video) {
+        reject(
+          new ErrorWithStatus({
+            status: httpStatus.BAD_REQUEST,
+            message: 'Required file is missing'
+          }) as any
+        );
+      }
+      resolve(files.video as File[]);
     });
   });
 };
