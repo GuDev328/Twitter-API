@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import { ErrorWithStatus } from '~/models/Errors';
 import { httpStatus } from '~/constants/httpStatus';
 import { File } from 'formidable';
+import fs from 'fs-extra';
+import { nanoid } from 'nanoid';
 
 export const handleUploadImage = async (req: Request) => {
   const formidable = (await import('formidable')).default;
@@ -47,24 +49,66 @@ export const handleUploadImage = async (req: Request) => {
 export const handleUploadVideo = async (req: Request) => {
   const formidable = (await import('formidable')).default;
   const form = formidable({
-    uploadDir: path.resolve('uploads/temp'),
+    uploadDir: path.resolve('uploads/videos'),
     maxFiles: 5,
     keepExtensions: true,
-    maxFileSize: 50 * 1024 * 1024, // 50MB
+    maxFileSize: 100 * 1024 * 1024, // 50MB
     maxTotalFileSize: 250 * 1024 * 1024, // 250MB
     filter: function ({ name, originalFilename, mimetype }) {
-      return true;
-      // const valid = name === 'image' && Boolean(mimetype?.includes('image/'));
-      // if (!valid) {
-      //   form.emit(
-      //     'error' as any,
-      //     new ErrorWithStatus({
-      //       status: httpStatus.BAD_REQUEST,
-      //       message: 'Invalid file type'
-      //     }) as any
-      //   );
-      // }
-      // return valid;
+      const valid = name === 'video' && Boolean(mimetype?.includes('mp4') || mimetype?.includes('quicktime'));
+      if (!valid) {
+        form.emit(
+          'error' as any,
+          new ErrorWithStatus({
+            status: httpStatus.BAD_REQUEST,
+            message: 'Invalid file type'
+          }) as any
+        );
+      }
+      return valid;
+    }
+  });
+  return new Promise<File[]>((resolve, reject) => {
+    form.parse(req, (err, fields, files) => {
+      if (err) {
+        reject(err);
+      }
+      if (!files.video) {
+        reject(
+          new ErrorWithStatus({
+            status: httpStatus.BAD_REQUEST,
+            message: 'Required file is missing'
+          }) as any
+        );
+      }
+      resolve(files.video as File[]);
+    });
+  });
+};
+
+export const handleUploadVideoHLS = async (req: Request) => {
+  const formidable = (await import('formidable')).default;
+  const uniqueName = nanoid();
+  await fs.mkdir(path.resolve('uploads/videos/' + uniqueName), { recursive: true });
+  const form = formidable({
+    uploadDir: path.resolve('uploads/videos/' + uniqueName),
+    maxFiles: 5,
+    keepExtensions: true,
+    maxFileSize: 100 * 1024 * 1024, // 50MB
+    maxTotalFileSize: 250 * 1024 * 1024, // 250MB
+    filename: (name, ext) => `${uniqueName}${ext}`,
+    filter: function ({ name, originalFilename, mimetype }) {
+      const valid = name === 'video' && Boolean(mimetype?.includes('mp4') || mimetype?.includes('quicktime'));
+      if (!valid) {
+        form.emit(
+          'error' as any,
+          new ErrorWithStatus({
+            status: httpStatus.BAD_REQUEST,
+            message: 'Invalid file type'
+          }) as any
+        );
+      }
+      return valid;
     }
   });
   return new Promise<File[]>((resolve, reject) => {

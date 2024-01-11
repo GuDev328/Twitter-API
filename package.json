@@ -31,7 +31,10 @@
     "lodash": "^4.17.21",
     "minimist": "^1.2.8",
     "mongodb": "^6.1.0",
-    "sharp": "^0.33.1"
+    "nanoid": "^3.3.7",
+    "sharp": "^0.33.1",
+    "slash": "^5.1.0",
+    "zx": "^7.2.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.1",

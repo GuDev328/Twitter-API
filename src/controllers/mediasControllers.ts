@@ -19,3 +19,11 @@ export const uploadVideo = async (req: Request<ParamsDictionary, any, any>, res:
     message: 'Upload video suscess'
   });
 };
+
+export const uploadVideoHLS = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const result = await mediasService.handleUploadVideoHLS(req);
+  res.status(200).json({
+    result,
+    message: 'Upload video HLS suscess'
+  });
+};

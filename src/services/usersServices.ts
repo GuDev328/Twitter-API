@@ -42,12 +42,13 @@ class UsersService {
     );
   }
 
-  signRefreshToken(userId: string) {
+  signRefreshToken(userId: string, verify: UserVerifyStatus) {
     return signToken(
       {
         payload: {
           userId,
-          type: TokenType.RefreshToken
+          type: TokenType.RefreshToken,
+          verify
         }
       },
       {
@@ -86,7 +87,7 @@ class UsersService {
       if (checkPassword) {
         const [accessToken, refreshToken] = await Promise.all([
           this.signAccessToken(user._id.toString(), user.verify),
-          this.signRefreshToken(user._id.toString())
+          this.signRefreshToken(user._id.toString(), user.verify)
         ]);
 
         const saveRefreshToken = await db.refreshTokens.insertOne(
@@ -123,7 +124,7 @@ class UsersService {
     const userId = result.insertedId.toString();
     const [accessToken, refreshToken, emailVerifyToken] = await Promise.all([
       this.signAccessToken(userId, UserVerifyStatus.Unverified),
-      this.signRefreshToken(userId),
+      this.signRefreshToken(userId, UserVerifyStatus.Unverified),
       this.signEmailVerifyToken(userId)
     ]);
     const saveRefreshToken = await db.refreshTokens.insertOne(
@@ -148,15 +149,15 @@ class UsersService {
   async refreshToken(payload: RefreshTokenRequest) {
     const oldToken = await db.refreshTokens.deleteOne({ token: payload.refreshToken });
     const [accessToken, refreshToken] = await Promise.all([
-      this.signAccessToken(payload.decodeAuthorization.payload.userId, payload.decodeAuthorization.payload.verify),
-      this.signRefreshToken(payload.decodeAuthorization.payload.userId)
+      this.signAccessToken(payload.decodeRefreshToken.payload.userId, payload.decodeRefreshToken.payload.verify),
+      this.signRefreshToken(payload.decodeRefreshToken.payload.userId, payload.decodeRefreshToken.payload.verify)
     ]);
 
     const saveRefreshToken = await db.refreshTokens.insertOne(
       new RefreshToken({
         token: refreshToken,
         created_at: new Date(),
-        user_id: new ObjectId(payload.decodeAuthorization.payload.userId)
+        user_id: new ObjectId(payload.decodeRefreshToken.payload.userId)
       })
     );
 
