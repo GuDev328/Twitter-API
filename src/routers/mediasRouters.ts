@@ -3,6 +3,7 @@ import { access } from 'fs';
 import { get } from 'lodash';
 import {
   getSegmentControllser,
+  getStatusUploadHLSVideoController,
   getVideoHLSController,
   uploadImage,
   uploadVideo,
@@ -17,5 +18,6 @@ router.post('/upload-video', accessTokenValidator, verifiedUserValidator, catchE
 router.post('/upload-video-hls', accessTokenValidator, verifiedUserValidator, catchError(uploadVideoHLS));
 router.get('/video-hls/:id/master.m3u8', catchError(getVideoHLSController));
 router.get('/video-hls/:id/:v/:segment', catchError(getSegmentControllser));
+router.get('/getStatusUploadVideoHLS/:id', catchError(getStatusUploadHLSVideoController));
 
 export default router;

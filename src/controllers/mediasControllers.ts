@@ -58,3 +58,11 @@ export const getSegmentControllser = async (req: Request<ParamsDictionary, any, 
     }
   });
 };
+
+export const getStatusUploadHLSVideoController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { id } = req.params;
+  const result = await mediasService.checkStatusEncodeHLSVideo(id);
+  res.status(200).json({
+    result
+  });
+};

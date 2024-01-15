@@ -92,10 +92,9 @@ export const handleUploadVideoHLS = async (req: Request) => {
   await fs.mkdir(path.resolve('uploads/videos/' + uniqueName), { recursive: true });
   const form = formidable({
     uploadDir: path.resolve('uploads/videos/' + uniqueName),
-    maxFiles: 5,
-    keepExtensions: true,
-    maxFileSize: 100 * 1024 * 1024, // 50MB
-    maxTotalFileSize: 250 * 1024 * 1024, // 250MB
+    maxFiles: 1,
+    keepExtensions: false,
+    maxFileSize: 100 * 1024 * 1024, // 100MB
     filename: (name, ext) => `${uniqueName}${ext}`,
     filter: function ({ name, originalFilename, mimetype }) {
       const valid = name === 'video' && Boolean(mimetype?.includes('mp4') || mimetype?.includes('quicktime'));

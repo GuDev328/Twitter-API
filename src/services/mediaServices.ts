@@ -98,6 +98,17 @@ class MediasService {
     );
     return result;
   }
+
+  async checkStatusEncodeHLSVideo(id: string) {
+    const pathVideo = path.resolve('uploads/videos', id, id);
+    try {
+      // Kiểm tra sự tồn tại của file
+      fs.accessSync(pathVideo, fs.constants.F_OK);
+      return 'Processing';
+    } catch (err) {
+      return 'Uploaded';
+    }
+  }
 }
 
 const mediasService = new MediasService();
