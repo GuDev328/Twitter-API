@@ -42,7 +42,7 @@ class UsersService {
     );
   }
 
-  signRefreshToken(userId: string, verify: UserVerifyStatus) {
+  signRefreshToken(userId: string, verify: UserVerifyStatus, expiresIn?: number) {
     return signToken(
       {
         payload: {
@@ -52,7 +52,7 @@ class UsersService {
         }
       },
       {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN
+        expiresIn: expiresIn || process.env.REFRESH_TOKEN_EXPIRES_IN
       }
     );
   }
@@ -148,9 +148,14 @@ class UsersService {
 
   async refreshToken(payload: RefreshTokenRequest) {
     const oldToken = await db.refreshTokens.deleteOne({ token: payload.refreshToken });
+    const refreshTokenEXP = (payload.decodeRefreshToken.exp as number) - Math.floor(Date.now() / 1000);
     const [accessToken, refreshToken] = await Promise.all([
       this.signAccessToken(payload.decodeRefreshToken.payload.userId, payload.decodeRefreshToken.payload.verify),
-      this.signRefreshToken(payload.decodeRefreshToken.payload.userId, payload.decodeRefreshToken.payload.verify)
+      this.signRefreshToken(
+        payload.decodeRefreshToken.payload.userId,
+        payload.decodeRefreshToken.payload.verify,
+        refreshTokenEXP
+      )
     ]);
 
     const saveRefreshToken = await db.refreshTokens.insertOne(

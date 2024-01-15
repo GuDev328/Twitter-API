@@ -1,4 +1,4 @@
-import express, { Router } from 'express';
+import express from 'express';
 import dotenv from 'dotenv';
 import usersRouters from '~/routers/usersRouters';
 import mediasRouters from '~/routers/mediasRouters';
@@ -11,7 +11,6 @@ const app = express();
 dotenv.config();
 db.connect();
 
-const router = Router();
 app.use(cors());
 app.use(express.json());
 
