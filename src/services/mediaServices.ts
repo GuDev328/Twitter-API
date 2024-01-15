@@ -57,8 +57,10 @@ class MediasService {
         await fs.remove(fileUploaded.filepath);
         return {
           url: isProduction
-            ? `${process.env.HOST}/video-hls/${fileUploaded.newFilename.split('.')[0]}`
-            : `http://localhost:${process.env.PORT}/video-hls/${fileUploaded.newFilename.split('.')[0]}`,
+            ? `${process.env.HOST}/medias/video-hls/${fileUploaded.newFilename.split('.')[0]}/master.m3u8`
+            : `http://localhost:${process.env.PORT}/medias/video-hls/${
+                fileUploaded.newFilename.split('.')[0]
+              }/master.m3u8`,
           type: MediaType.VideoHLS
         };
       })

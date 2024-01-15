@@ -5,12 +5,14 @@ import mediasRouters from '~/routers/mediasRouters';
 import db from './services/databaseServices';
 import { defaultsErrorHandler } from './middlewares/errorsMidware';
 import path from 'path';
+import cors from 'cors';
 
 const app = express();
 dotenv.config();
 db.connect();
 
 const router = Router();
+app.use(cors());
 app.use(express.json());
 
 app.use('/users', usersRouters);
