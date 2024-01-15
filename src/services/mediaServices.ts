@@ -10,6 +10,38 @@ import { Media, MediaType } from '~/constants/enum';
 import { encodeHLSWithMultipleVideoStreams } from '~/utils/video';
 config();
 
+class Queue {
+  items: string[];
+  encoding: boolean;
+  constructor() {
+    (this.items = []), (this.encoding = false);
+  }
+
+  enqueue(item: string) {
+    this.items.push(item);
+    this.processing();
+  }
+  async processing() {
+    if (this.encoding) return;
+    if (this.items.length > 0) {
+      try {
+        this.encoding = true;
+        const filePath = this.items[0];
+        await encodeHLSWithMultipleVideoStreams(filePath);
+        console.log('encoding done for ' + filePath);
+        await fs.remove(filePath);
+        this.items.shift();
+        this.encoding = false;
+        this.processing();
+      } catch (e) {
+        console.log('Error in processing encode video hls: ' + e);
+      }
+    }
+  }
+}
+
+const encodeVideoQueue = new Queue();
+
 class MediasService {
   constructor() {}
 
@@ -53,8 +85,7 @@ class MediasService {
     const filesUploaded = await handleUploadVideoHLS(req);
     const result: Media[] = await Promise.all(
       filesUploaded.map(async (fileUploaded) => {
-        await encodeHLSWithMultipleVideoStreams(fileUploaded.filepath);
-        await fs.remove(fileUploaded.filepath);
+        encodeVideoQueue.enqueue(fileUploaded.filepath);
         return {
           url: isProduction
             ? `${process.env.HOST}/medias/video-hls/${fileUploaded.newFilename.split('.')[0]}/master.m3u8`
