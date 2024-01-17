@@ -76,3 +76,8 @@ export interface ChangePasswordRequest {
   newPassword: string;
   confirmPassword: string;
 }
+
+export interface AddUsersToCircleRequest {
+  decodeAuthorization: JwtPayload;
+  userIds: string[];
+}

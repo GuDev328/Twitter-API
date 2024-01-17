@@ -12,7 +12,7 @@ interface UserType {
   emailVerifyToken?: string;
   forgotPasswordToken?: string;
   verify?: UserVerifyStatus;
-
+  twitter_circle?: ObjectId[];
   bio?: string;
   location?: string;
   website?: string;
@@ -32,7 +32,7 @@ export default class User {
   emailVerifyToken: string;
   forgotPasswordToken: string;
   verify: UserVerifyStatus;
-
+  twitter_circle?: ObjectId[];
   bio: string;
   location: string;
   website: string;
@@ -51,7 +51,7 @@ export default class User {
     this.emailVerifyToken = user.emailVerifyToken || '';
     this.forgotPasswordToken = user.forgotPasswordToken || '';
     this.verify = user.verify || UserVerifyStatus.Unverified;
-
+    this.twitter_circle = user.twitter_circle || [];
     this.bio = user.bio || '';
     this.location = user.location || '';
     this.website = user.website || '';

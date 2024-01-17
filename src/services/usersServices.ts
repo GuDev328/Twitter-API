@@ -1,4 +1,5 @@
 import {
+  AddUsersToCircleRequest,
   ChangePasswordRequest,
   FollowRequest,
   ForgotPasswordRequest,
@@ -377,6 +378,15 @@ class UsersService {
       );
       return;
     }
+  }
+
+  async setUserCircle(payload: AddUsersToCircleRequest) {
+    const userIds = payload.userIds.map((userId) => new ObjectId(userId));
+    const changeCircle = await db.users.findOneAndUpdate(
+      { _id: new ObjectId(payload.decodeAuthorization.payload.userId) },
+      { $set: { twitter_circle: userIds } },
+      { returnDocument: 'after' }
+    );
   }
 }
 

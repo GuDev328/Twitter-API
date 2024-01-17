@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { pick } from 'lodash';
 import {
+  AddUsersToCircleRequest,
   ChangePasswordRequest,
   FollowRequest,
   ForgotPasswordRequest,
@@ -140,5 +141,16 @@ export const changePasswordController = async (
   res.status(200).json({
     result,
     message: 'ChangePassword sucess'
+  });
+};
+
+export const setUserCircleController = async (
+  req: Request<ParamsDictionary, any, AddUsersToCircleRequest>,
+  res: Response
+) => {
+  const result = await userService.setUserCircle(req.body);
+  res.status(200).json({
+    result,
+    message: 'Set Users Circle sucess'
   });
 };

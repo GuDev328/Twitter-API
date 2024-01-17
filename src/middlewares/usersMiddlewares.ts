@@ -476,3 +476,35 @@ export const changePasswordValidator = validate(
     }
   })
 );
+
+export const setUserCirclesValidator = validate(
+  checkSchema({
+    userIds: {
+      isArray: {
+        errorMessage: 'userIds must be an array'
+      },
+      custom: {
+        options: async (value: string[], { req }) => {
+          await Promise.all(
+            value.map(async (userId: string) => {
+              if (!ObjectId.isValid(userId)) {
+                throw new ErrorWithStatus({
+                  status: httpStatus.UNPROCESSABLE_ENTITY,
+                  message: 'User id is not valid'
+                });
+              }
+              const user = await usersService.checkUserIdExists(userId);
+              if (!user) {
+                throw new ErrorWithStatus({
+                  status: httpStatus.NOT_FOUND,
+                  message: 'Some users not found'
+                });
+              }
+            })
+          );
+          return true;
+        }
+      }
+    }
+  })
+);

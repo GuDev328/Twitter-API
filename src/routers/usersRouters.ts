@@ -10,6 +10,7 @@ import {
   registerController,
   resendVerifyEmailController,
   resetPasswordController,
+  setUserCircleController,
   unfollowController,
   updateMeController,
   verifyEmailController,
@@ -25,6 +26,7 @@ import {
   refreshTokenValidator,
   registerValidator,
   resetPasswordValidator,
+  setUserCirclesValidator,
   unfollowValidator,
   updateMeValidator,
   verifiedUserValidator,
@@ -79,4 +81,12 @@ router.post(
 );
 
 router.post('/change-password', accessTokenValidator, changePasswordValidator, catchError(changePasswordController));
+router.post(
+  '/set-circle',
+  accessTokenValidator,
+  verifiedUserValidator,
+  setUserCirclesValidator,
+  catchError(setUserCircleController)
+);
+
 export default router;
