@@ -1,9 +1,9 @@
 import { ObjectId } from 'mongodb';
 
 interface HashtagType {
-  _id: ObjectId;
+  _id?: ObjectId;
   name: string;
-  created_at: Date;
+  created_at?: Date;
 }
 
 export default class Hashtag {

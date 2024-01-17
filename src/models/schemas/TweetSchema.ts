@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb';
 import { Media, TweetAudience, TweetTypeEnum } from '~/constants/enum';
 
 interface TweetType {
-  _id: ObjectId;
+  _id?: ObjectId;
   user_id: ObjectId;
   type: TweetTypeEnum;
   audience: TweetAudience;
@@ -13,8 +13,8 @@ interface TweetType {
   medias: Media[];
   guest_views: number;
   user_views: number;
-  created_at: Date;
-  updated_at: Date;
+  created_at?: Date;
+  updated_at?: Date;
 }
 
 export default class Tweet {
