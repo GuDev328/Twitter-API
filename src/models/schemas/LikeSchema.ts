@@ -1,10 +1,10 @@
 import { ObjectId } from 'mongodb';
 
 interface LikeType {
-  _id: ObjectId;
+  _id?: ObjectId;
   user_id: ObjectId;
   tweet_id: ObjectId;
-  created_at: Date;
+  created_at?: Date;
 }
 
 export default class Like {
