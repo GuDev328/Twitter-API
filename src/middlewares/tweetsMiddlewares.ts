@@ -7,6 +7,7 @@ import { ObjectId } from 'mongodb';
 import { TokenType, TweetAudience, TweetTypeEnum, MediaType, UserVerifyStatus, Media } from '~/constants/enum';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
+import Tweet from '~/models/schemas/TweetSchema';
 import db from '~/services/databaseServices';
 import usersService from '~/services/usersServices';
 import { numberEnumtoArray } from '~/utils/common';
@@ -151,3 +152,63 @@ export const createTweetValidator = validate(
     }
   })
 );
+
+export const tweetIdValidator = validate(
+  checkSchema({
+    id: {
+      isString: { errorMessage: 'tweetId must be a string' },
+      custom: {
+        options: async (value: string, { req }) => {
+          if (!ObjectId.isValid(value)) {
+            throw new ErrorWithStatus({
+              status: httpStatus.UNPROCESSABLE_ENTITY,
+              message: 'tweetId is not valid'
+            });
+          }
+          const tweet = await db.tweets.findOne({ _id: new ObjectId(value) });
+          if (!tweet) {
+            throw new ErrorWithStatus({
+              status: httpStatus.NOT_FOUND,
+              message: 'Tweet not found'
+            });
+          }
+          req.body.tweet = tweet;
+          return true;
+        }
+      }
+    }
+  })
+);
+
+export const audienceValidator = async (req: Request, res: Response, next: NextFunction) => {
+  const { tweet } = req.body as { tweet: Tweet };
+  if (tweet.audience === TweetAudience.TwitterCircle) {
+    if (!req.body.decodeAuthorization) {
+      throw new ErrorWithStatus({
+        status: httpStatus.UNAUTHORIZED,
+        message: 'Missing authorization'
+      });
+    }
+
+    const author = await db.users.findOne({ _id: new ObjectId(tweet.user_id) });
+    if (!author || author.verify === UserVerifyStatus.Banned) {
+      throw new ErrorWithStatus({
+        status: httpStatus.NOT_FOUND,
+        message: 'User not found'
+      });
+    }
+
+    const userId = req.body.decodeAuthorization.payload.userId;
+    const authorCircle = author.twitter_circle;
+    const isInTweetCircle = authorCircle?.some((userCircleId) => userCircleId.equals(userId));
+    if (!author._id.equals(userId)) {
+      if (!isInTweetCircle) {
+        throw new ErrorWithStatus({
+          status: httpStatus.FORBIDDEN,
+          message: 'User not in tweet circle'
+        });
+      }
+    }
+  }
+  next();
+};

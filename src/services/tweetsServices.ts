@@ -7,6 +7,8 @@ import Tweet from '~/models/schemas/TweetSchema';
 import { ObjectId } from 'mongodb';
 import { stringArrayToObjectIdArray } from '~/utils/common';
 import Hashtag from '~/models/schemas/HashtagSchema';
+import { httpStatus } from '~/constants/httpStatus';
+import { ErrorWithStatus } from '~/models/Errors';
 config();
 
 class TweetsService {
