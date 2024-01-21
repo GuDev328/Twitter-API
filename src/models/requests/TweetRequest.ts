@@ -1,5 +1,6 @@
 import { JwtPayload } from 'jsonwebtoken';
 import { Media, TweetAudience, TweetTypeEnum } from '~/constants/enum';
+import Tweet from '../schemas/TweetSchema';
 
 export interface TweetRequest {
   decodeAuthorization: JwtPayload;
@@ -10,4 +11,9 @@ export interface TweetRequest {
   hashtags: string[];
   mentions: string[];
   medias: Media[];
+}
+
+export interface getTweetRequest {
+  decodeAuthorization: JwtPayload;
+  tweet: Tweet;
 }

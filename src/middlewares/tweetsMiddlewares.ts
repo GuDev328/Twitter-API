@@ -79,7 +79,6 @@ export const createTweetValidator = validate(
           const type = req.body.type as TweetTypeEnum;
           if (type === TweetTypeEnum.Retweet || type === TweetTypeEnum.Comment || type === TweetTypeEnum.QuoteTweet) {
             const parent_id = req.body.parent_id;
-            console.log(parent_id);
             if (parent_id) {
               const parentTweet = await db.tweets.findOne({ _id: new ObjectId(parent_id) });
               if (!parentTweet) {

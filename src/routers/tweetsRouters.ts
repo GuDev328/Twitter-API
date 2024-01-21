@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createTweetController, getTweetController } from '~/controllers/tweetsControllers';
+import { createTweetController, getTweetChildrenController, getTweetController } from '~/controllers/tweetsControllers';
 import { audienceValidator, createTweetValidator, tweetIdValidator } from '~/middlewares/tweetsMiddlewares';
 import { accessTokenValidator, isLoginValidator, verifiedUserValidator } from '~/middlewares/usersMiddlewares';
 import { catchError } from '~/utils/handler';
@@ -21,5 +21,16 @@ router.get(
   catchError(audienceValidator),
   catchError(getTweetController)
 );
-
+/**
+Header: {Authorization?: Bearer <access_token>}
+Query: {limit: number, page: number, tweet_type: TweetType}
+ */
+router.get(
+  '/tweet/:id/children',
+  tweetIdValidator,
+  isLoginValidator(accessTokenValidator),
+  isLoginValidator(verifiedUserValidator),
+  catchError(audienceValidator),
+  catchError(getTweetChildrenController)
+);
 export default router;
