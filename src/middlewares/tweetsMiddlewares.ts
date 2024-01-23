@@ -326,3 +326,35 @@ export const audienceValidator = async (req: Request, res: Response, next: NextF
   }
   next();
 };
+
+export const getTweetChildrenValidator = validate(
+  checkSchema({
+    tweet_type: {
+      isIn: { options: [TweetTypeEnum], errorMessage: 'Invalid tweet type' }
+    },
+    limit: {
+      isNumeric: { errorMessage: 'Limit is a number' },
+      custom: {
+        options: (value: number) => {
+          const num = Number(value);
+          if (num > 50 || num < 1) {
+            throw new Error('Limit must be between 1 and 50');
+          }
+          return true;
+        }
+      }
+    },
+    page: {
+      isNumeric: { errorMessage: 'Page must is a number' },
+      custom: {
+        options: (value: number) => {
+          const num = Number(value);
+          if (num < 1) {
+            throw new Error('Page cannot be less than 1');
+          }
+          return true;
+        }
+      }
+    }
+  })
+);

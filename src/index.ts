@@ -9,6 +9,7 @@ import db from './services/databaseServices';
 import { defaultsErrorHandler } from './middlewares/errorsMiddlewares';
 import path from 'path';
 import cors from 'cors';
+// import '~/utils/faker';
 
 const app = express();
 dotenv.config();

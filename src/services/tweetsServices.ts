@@ -54,12 +54,12 @@ class TweetsService {
     const result = await db.tweets.findOneAndUpdate(
       { _id: new ObjectId(payload.tweet._id) },
       { $inc: inc, $currentDate: { updated_at: true } },
-      { returnDocument: 'after', projection: { user_views: 1, guest_views: 1 } }
+      { returnDocument: 'after', projection: { user_views: 1, guest_views: 1, updated_at: 1 } }
     );
     return result;
   }
 
-  async getTweetChildren(tweet_id: string, tweet_type: TweetTypeEnum, limit: number, page: number) {
+  async getTweetChildren(tweet_id: string, tweet_type: TweetTypeEnum, limit: number, page: number, isUser: boolean) {
     const result = await db.tweets
       .aggregate<Tweet>([
         {
@@ -181,10 +181,35 @@ class TweetsService {
         }
       ])
       .toArray();
+    const ids = result.map((tweet) => tweet._id as ObjectId);
+    const inc = isUser ? { user_views: 1 } : { guest_views: 1 };
+    const dateUpdate = new Date();
+    await db.tweets.updateMany(
+      {
+        _id: {
+          $in: ids
+        }
+      },
+      {
+        $inc: inc,
+        $set: { updated_at: dateUpdate }
+      }
+    );
+
+    result.forEach((tweet) => {
+      tweet.updated_at = dateUpdate;
+      if (isUser) {
+        tweet.user_views += 1;
+      } else {
+        tweet.guest_views += 1;
+      }
+    });
+
     const total = await db.tweets.countDocuments({
       parent_id: new ObjectId(tweet_id),
       type: tweet_type
     });
+
     return { total_page: Math.ceil(total / limit), result };
   }
 }

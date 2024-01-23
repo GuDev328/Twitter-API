@@ -36,7 +36,8 @@ export const getTweetChildrenController = async (
   const tweet_type = Number(req.query.tweet_type as string) as TweetTypeEnum;
   const limit = Number(req.query.limit as string);
   const page = Number(req.query.page as string);
-  const { total_page, result } = await tweetsService.getTweetChildren(id, tweet_type, limit, page);
+  const isUser = req.body.decodeAuthorization ? true : false;
+  const { total_page, result } = await tweetsService.getTweetChildren(id, tweet_type, limit, page, isUser);
   res.status(200).json({
     result,
     total_page,

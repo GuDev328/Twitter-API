@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import { createTweetController, getTweetChildrenController, getTweetController } from '~/controllers/tweetsControllers';
-import { audienceValidator, createTweetValidator, tweetIdValidator } from '~/middlewares/tweetsMiddlewares';
+import {
+  audienceValidator,
+  createTweetValidator,
+  getTweetChildrenValidator,
+  tweetIdValidator
+} from '~/middlewares/tweetsMiddlewares';
 import { accessTokenValidator, isLoginValidator, verifiedUserValidator } from '~/middlewares/usersMiddlewares';
 import { catchError } from '~/utils/handler';
 const router = Router();
@@ -27,6 +32,7 @@ Query: {limit: number, page: number, tweet_type: TweetType}
  */
 router.get(
   '/tweet/:id/children',
+  getTweetChildrenValidator,
   tweetIdValidator,
   isLoginValidator(accessTokenValidator),
   isLoginValidator(verifiedUserValidator),
