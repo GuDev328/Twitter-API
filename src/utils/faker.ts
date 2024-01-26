@@ -10,7 +10,7 @@ import Follower from '~/models/schemas/FollowerSchema';
 import tweetsService from '~/services/tweetsServices';
 
 const PASSWORD = '12345678';
-const MYID = new ObjectId('65afd90daaf3544ed1fa9639');
+const MYID = new ObjectId('65b12c6d3742e26204688ef1');
 const USER_COUNT = 100;
 
 const createRandomUser = () => {
@@ -86,7 +86,9 @@ const insertTweets = async (ids: ObjectId[]) => {
   let count: number = 0;
   const result = await Promise.all(
     ids.map(async (id) => {
-      await Promise.all([tweetsService.createNewTweet(createRandomTweets())]);
+      const tweet = createRandomTweets();
+      tweet.decodeAuthorization.payload.userId = id;
+      await Promise.all([tweetsService.createNewTweet(tweet)]);
       count += 2;
       console.log('count: ', count);
     })

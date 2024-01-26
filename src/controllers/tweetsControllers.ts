@@ -47,3 +47,17 @@ export const getTweetChildrenController = async (
     message: 'Get tweet children suscess'
   });
 };
+
+export const getNewFeedsController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const limit = Number(req.query.limit as string);
+  const page = Number(req.query.page as string);
+  const userId = req.body.decodeAuthorization.payload.userId;
+  const { total_page, result } = await tweetsService.getNewFeeds(userId, limit, page);
+  res.status(200).json({
+    result,
+    total_page,
+    page,
+    limit,
+    message: 'Get new feeds suscess'
+  });
+};

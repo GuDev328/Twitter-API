@@ -1,8 +1,14 @@
 import { Router } from 'express';
-import { createTweetController, getTweetChildrenController, getTweetController } from '~/controllers/tweetsControllers';
+import {
+  createTweetController,
+  getNewFeedsController,
+  getTweetChildrenController,
+  getTweetController
+} from '~/controllers/tweetsControllers';
 import {
   audienceValidator,
   createTweetValidator,
+  getNewFeedsValidator,
   getTweetChildrenValidator,
   tweetIdValidator
 } from '~/middlewares/tweetsMiddlewares';
@@ -26,6 +32,7 @@ router.get(
   catchError(audienceValidator),
   catchError(getTweetController)
 );
+
 /**
 Header: {Authorization?: Bearer <access_token>}
 Query: {limit: number, page: number, tweet_type: TweetType}
@@ -39,4 +46,11 @@ router.get(
   catchError(audienceValidator),
   catchError(getTweetChildrenController)
 );
+
+/**
+ * Description: Get new feeds
+ * Header: {Authorization: Bearer <access_token>}
+ * Query: {limit: number, page: number}
+ */
+router.get('/', getNewFeedsValidator, accessTokenValidator, verifiedUserValidator, catchError(getNewFeedsController));
 export default router;
