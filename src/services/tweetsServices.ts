@@ -10,7 +10,6 @@ import Hashtag from '~/models/schemas/HashtagSchema';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import { TweetTypeEnum } from '~/constants/enum';
-import { update } from 'lodash';
 config();
 
 class TweetsService {
@@ -594,7 +593,7 @@ class TweetsService {
     result.forEach((item) => {
       (item.user_views += 1), (item.updated_at = date);
     });
-    return { total_page: Math.ceil(count[0].total / limit), result };
+    return { total_page: Math.ceil(count[0]?.total / limit), result };
   }
 }
 

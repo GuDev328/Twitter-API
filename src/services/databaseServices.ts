@@ -28,6 +28,27 @@ class DatabaseServices {
     }
   }
 
+  async indexUsersCollection() {
+    if (!db.users.indexExists('username_text')) {
+      await db.users.createIndex({ username: 'text' });
+    }
+    if (!db.users.indexExists('email_1')) {
+      await db.users.createIndex({ email: 1 });
+    }
+  }
+
+  async indexTweetsCollection() {
+    if (!db.tweets.indexExists('user_id_1')) {
+      await db.tweets.createIndex({ user_id: 1 });
+    }
+    if (!db.tweets.indexExists('parent_id_1')) {
+      await db.tweets.createIndex({ parent_id: 1 });
+    }
+    if (!db.tweets.indexExists('content_text')) {
+      await db.tweets.createIndex({ content: 'text' }, { default_language: 'none' });
+    }
+  }
+
   get users(): Collection<User> {
     return this.db.collection('Users');
   }

@@ -5,6 +5,7 @@ import mediasRouters from '~/routers/mediasRouters';
 import tweetsRouters from '~/routers/tweetsRouters';
 import bookmarksRouters from '~/routers/bookmarksRouters';
 import likesRouters from '~/routers/likesRouters';
+import searchRouters from '~/routers/searchRouters';
 import db from './services/databaseServices';
 import { defaultsErrorHandler } from './middlewares/errorsMiddlewares';
 import path from 'path';
@@ -13,7 +14,10 @@ import cors from 'cors';
 
 const app = express();
 dotenv.config();
-db.connect();
+db.connect().then(() => {
+  db.indexUsersCollection();
+  db.indexTweetsCollection();
+});
 
 app.use(cors());
 app.use(express.json());
@@ -23,6 +27,7 @@ app.use('/medias', mediasRouters);
 app.use('/tweets', tweetsRouters);
 app.use('/bookmarks', bookmarksRouters);
 app.use('/likes', likesRouters);
+app.use('/search', searchRouters);
 app.use('/image', express.static(path.resolve('uploads/images')));
 app.use('/video', express.static(path.resolve('uploads/videos')));
 app.use(defaultsErrorHandler);
