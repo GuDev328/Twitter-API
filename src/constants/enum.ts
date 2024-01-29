@@ -30,3 +30,8 @@ export enum TweetTypeEnum {
   Comment,
   QuoteTweet
 }
+
+export enum SendEmail {
+  VerifyEmail,
+  FogotPassword
+}

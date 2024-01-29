@@ -18,13 +18,14 @@ import bcrypt from 'bcrypt';
 import User from '~/models/schemas/UserSchema';
 import db from '~/services/databaseServices';
 import { signToken, verifyToken } from '~/utils/jwt';
-import { TokenType, UserVerifyStatus } from '~/constants/enum';
+import { SendEmail, TokenType, UserVerifyStatus } from '~/constants/enum';
 import { ErrorWithStatus } from '~/models/Errors';
 import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 import { ObjectId } from 'mongodb';
 import { JwtPayload } from 'jsonwebtoken';
 import { httpStatus } from '~/constants/httpStatus';
 import Follower from '~/models/schemas/FollowerSchema';
+import { sendVerifyEmail } from '~/utils/email';
 
 class UsersService {
   constructor() {}
@@ -140,7 +141,7 @@ class UsersService {
       { _id: new ObjectId(userId) },
       { $set: { emailVerifyToken: emailVerifyToken } }
     );
-
+    await sendVerifyEmail(payload.email, emailVerifyToken, SendEmail.VerifyEmail);
     return {
       accessToken,
       refreshToken
@@ -260,6 +261,7 @@ class UsersService {
         $set: { forgotPasswordToken, updated_at: '$$NOW' }
       }
     ]);
+    await sendVerifyEmail(payload.user.email, forgotPasswordToken, SendEmail.FogotPassword);
     return;
   }
 
