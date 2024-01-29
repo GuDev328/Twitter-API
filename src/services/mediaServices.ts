@@ -2,12 +2,16 @@ import { Request } from 'express';
 import path from 'path';
 import sharp from 'sharp';
 import db from '~/services/databaseServices';
-import { handleUploadImage, handleUploadVideo, handleUploadVideoHLS } from '~/utils/file';
+import { getFiles, handleUploadImage, handleUploadVideo, handleUploadVideoHLS } from '~/utils/file';
 import fs from 'fs-extra';
 import { isProduction } from '~/constants/config';
 import { config } from 'dotenv';
 import { Media, MediaType } from '~/constants/enum';
 import { encodeHLSWithMultipleVideoStreams } from '~/utils/video';
+import { UploadFileToS3 } from '~/utils/s3';
+import { CompleteMultipartUploadOutput } from '@aws-sdk/client-s3';
+import mime from 'mime-types';
+
 config();
 
 class Queue {
@@ -28,9 +32,18 @@ class Queue {
         this.encoding = true;
         const filePath = this.items[0];
         await encodeHLSWithMultipleVideoStreams(filePath);
-        console.log('encoding done for ' + filePath);
+        const idName = filePath.split('\\').pop() as string;
         await fs.remove(filePath);
         this.items.shift();
+        const files = getFiles(path.resolve('uploads/videos', idName));
+        files.map((filePath) => {
+          const s3Result = UploadFileToS3(
+            'videos-hls/' + idName + filePath.replace(path.resolve('uploads/videos', idName), '').replace('\\', '/'),
+            filePath,
+            mime.lookup(filePath) as string
+          );
+        });
+        fs.rmdirSync(path.resolve('uploads/videos', idName), { recursive: true });
         this.encoding = false;
         this.processing();
       } catch (e) {
@@ -50,15 +63,17 @@ class MediasService {
     const filesUploaded = await handleUploadImage(req);
     const result: Media[] = await Promise.all(
       filesUploaded.map(async (fileUploaded) => {
-        const newPath = path.resolve('uploads/images') + `/${fileUploaded.newFilename.split('.')[0]}.jpg`;
+        const newPath = path.resolve('uploads/images') + `\\${fileUploaded.newFilename.split('.')[0]}.jpg`;
         const info = await sharp(fileUploaded.filepath).jpeg({ quality: 90 });
-        info.toFile(newPath, (err, ifo) => {
-          fs.remove(fileUploaded.filepath).catch((err) => console.log(err));
-        });
+        await info.toFile(newPath);
+        const s3Result = await UploadFileToS3(
+          'images/' + fileUploaded.newFilename,
+          newPath,
+          mime.lookup(newPath) as string
+        );
+        await Promise.all([fs.remove(newPath), fs.remove(fileUploaded.filepath)]);
         return {
-          url: isProduction
-            ? `${process.env.HOST}/image/${fileUploaded.newFilename.split('.')[0]}.jpg`
-            : `http://localhost:${process.env.PORT}/image/${fileUploaded.newFilename.split('.')[0]}.jpg`,
+          url: (s3Result as CompleteMultipartUploadOutput).Location as string,
           type: MediaType.Image
         };
       })
@@ -70,10 +85,14 @@ class MediasService {
     const filesUploaded = await handleUploadVideo(req);
     const result: Media[] = await Promise.all(
       filesUploaded.map(async (fileUploaded) => {
+        const s3Result = await UploadFileToS3(
+          'videos/' + fileUploaded.newFilename,
+          fileUploaded.filepath,
+          mime.lookup(fileUploaded.filepath) as string
+        );
+        await fs.remove(fileUploaded.filepath);
         return {
-          url: isProduction
-            ? `${process.env.HOST}/video/${fileUploaded.newFilename}`
-            : `http://localhost:${process.env.PORT}/video/${fileUploaded.newFilename}`,
+          url: (s3Result as CompleteMultipartUploadOutput).Location as string,
           type: MediaType.Video
         };
       })
@@ -100,12 +119,10 @@ class MediasService {
   }
 
   async checkStatusEncodeHLSVideo(id: string) {
-    const pathVideo = path.resolve('uploads/videos', id, id);
-    try {
-      // Kiểm tra sự tồn tại của file
-      fs.accessSync(pathVideo, fs.constants.F_OK);
+    const pathFolderVideo = path.resolve('uploads/videos', id);
+    if (fs.existsSync(pathFolderVideo)) {
       return 'Processing';
-    } catch (err) {
+    } else {
       return 'Uploaded';
     }
   }

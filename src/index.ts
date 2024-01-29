@@ -28,8 +28,6 @@ app.use('/tweets', tweetsRouters);
 app.use('/bookmarks', bookmarksRouters);
 app.use('/likes', likesRouters);
 app.use('/search', searchRouters);
-app.use('/image', express.static(path.resolve('uploads/images')));
-app.use('/video', express.static(path.resolve('uploads/videos')));
 app.use(defaultsErrorHandler);
 const port = process.env.PORT || 3030;
 app.listen(port, () => console.log('API-Twitter server is running port: ' + port));

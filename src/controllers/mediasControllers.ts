@@ -6,6 +6,7 @@ import path from 'path';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import mediasService from '~/services/mediaServices';
+import { sendFileFromS3 } from '~/utils/s3';
 
 export const uploadImage = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
   const result = await mediasService.handleUploadImage(req);
@@ -33,30 +34,32 @@ export const uploadVideoHLS = async (req: Request<ParamsDictionary, any, any>, r
 
 export const getVideoHLSController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
   const { id } = req.params;
-  const pathM3U8 = path.resolve('uploads/videos', id, 'master.m3u8');
-  return res.sendFile(pathM3U8, (err) => {
-    if (err) {
-      console.log(err);
-      throw new ErrorWithStatus({
-        message: 'Error while send file',
-        status: httpStatus.NOT_FOUND
-      });
-    }
-  });
+  const data = sendFileFromS3(res, 'videos-hls/' + id + '/master.m3u8');
+  // const pathM3U8 = path.resolve('uploads/videos', id, 'master.m3u8');
+  // return res.sendFile(pathM3U8, (err) => {
+  //   if (err) {
+  //     console.log(err);
+  //     throw new ErrorWithStatus({
+  //       message: 'Error while send file',
+  //       status: httpStatus.NOT_FOUND
+  //     });
+  //   }
+  // });
 };
 
 export const getSegmentControllser = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
   const { id, v, segment } = req.params;
-  const pathSegment = path.resolve('uploads/videos', id, v, segment);
-  return res.sendFile(pathSegment, (err) => {
-    if (err) {
-      console.log(err);
-      throw new ErrorWithStatus({
-        message: 'Error while send file',
-        status: httpStatus.NOT_FOUND
-      });
-    }
-  });
+  const data = sendFileFromS3(res, 'videos-hls/' + id + '/' + v + '/' + segment);
+  // const pathSegment = path.resolve('uploads/videos', id, v, segment);
+  // return res.sendFile(pathSegment, (err) => {
+  //   if (err) {
+  //     console.log(err);
+  //     throw new ErrorWithStatus({
+  //       message: 'Error while send file',
+  //       status: httpStatus.NOT_FOUND
+  //     });
+  //   }
+  // });
 };
 
 export const getStatusUploadHLSVideoController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
