@@ -19,6 +19,8 @@ import {
   VerifyEmailRequest
 } from '~/models/requests/UserRequests';
 import userService from '~/services/usersServices';
+import env from 'dotenv';
+env.config();
 
 export const loginController = async (req: Request<ParamsDictionary, any, LoginRequest>, res: Response) => {
   const result = await userService.login(req.body);
@@ -26,6 +28,13 @@ export const loginController = async (req: Request<ParamsDictionary, any, LoginR
     result,
     message: 'Login suscess'
   });
+};
+
+export const loginGoogleController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { code } = req.query;
+  const result = await userService.loginGoogle(code as string);
+  const urlRedirect = `${process.env.CLIENT_REDIRECT_CALLBACK}?access_token=${result.accessToken}&refresh_token=${result.refreshToken}&newUser=${result.newUser}`;
+  res.redirect(urlRedirect);
 };
 
 export const registerController = async (req: Request<ParamsDictionary, any, RegisterRequest>, res: Response) => {

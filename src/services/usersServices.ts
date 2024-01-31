@@ -26,6 +26,8 @@ import { JwtPayload } from 'jsonwebtoken';
 import { httpStatus } from '~/constants/httpStatus';
 import Follower from '~/models/schemas/FollowerSchema';
 import { sendVerifyEmail } from '~/utils/email';
+import axios from 'axios';
+import { nanoid } from 'nanoid';
 
 class UsersService {
   constructor() {}
@@ -110,6 +112,83 @@ class UsersService {
           message: 'Password incorrect'
         });
       }
+    }
+  }
+
+  private async getOauthGoogleToken(code: string) {
+    const body = {
+      code,
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      grant_type: 'authorization_code'
+    };
+    const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+    return data;
+  }
+
+  private async getGoogleUserInfo(access_token: string, id_token: string) {
+    const { data } = await axios.get('https://www.googleapis.com/oauth2/v1/userinfo', {
+      params: {
+        access_token,
+        alt: 'json'
+      },
+      headers: {
+        Authorization: `Bearer ${id_token}`
+      }
+    });
+    return data;
+  }
+
+  async loginGoogle(code: string) {
+    const oauthGoogleToken = await this.getOauthGoogleToken(code);
+    const googleUserInfo = await this.getGoogleUserInfo(oauthGoogleToken.access_token, oauthGoogleToken.id_token);
+    if (!googleUserInfo.verified_email) {
+      throw new ErrorWithStatus({
+        message: 'Email not verified',
+        status: httpStatus.BAD_REQUEST
+      });
+    }
+
+    const userInDb = await this.checkEmailExists(googleUserInfo.email);
+
+    if (userInDb) {
+      const [accessToken, refreshToken] = await Promise.all([
+        this.signAccessToken(userInDb._id.toString(), userInDb.verify),
+        this.signRefreshToken(userInDb._id.toString(), userInDb.verify)
+      ]);
+      await db.refreshTokens.insertOne(
+        new RefreshToken({
+          token: refreshToken,
+          created_at: new Date(),
+          user_id: userInDb._id
+        })
+      );
+      return {
+        accessToken,
+        refreshToken,
+        newUser: false
+      };
+    } else {
+      const randomPassword = nanoid(10);
+      const usernameRandom = googleUserInfo.name.replace(/\s/g, '') + new Date().getTime() + nanoid(5);
+      const { accessToken, refreshToken } = await this.register({
+        name: googleUserInfo.name,
+        email: googleUserInfo.email,
+        password: randomPassword,
+        confirmPassword: randomPassword,
+        username: usernameRandom,
+        date_of_birth: new Date().toISOString()
+      });
+      return {
+        accessToken,
+        refreshToken,
+        newUser: true
+      };
     }
   }
 
@@ -251,6 +330,7 @@ class UsersService {
         $set: { emailVerifyToken, updated_at: '$$NOW' }
       }
     ]);
+    await sendVerifyEmail(user.email, emailVerifyToken, SendEmail.VerifyEmail);
     return;
   }
 
