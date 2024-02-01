@@ -53,7 +53,7 @@ router.post(
   verifyForgotPasswordValidator,
   catchError(resetPasswordController)
 );
-router.post('/get-me', accessTokenValidator, catchError(getMeController));
+router.get('/get-me', accessTokenValidator, catchError(getMeController));
 router.patch(
   '/update-me',
   accessTokenValidator,
