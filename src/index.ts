@@ -39,11 +39,13 @@ io.on('connection', (socket) => {
   socket.on('chat', (data) => {
     const contentChat = data.content;
     const receiverUserId = data.to;
-    const receiverSocketId = users[receiverUserId].socketId;
-    socket.to(receiverSocketId).emit('receiver-chat', {
-      content: contentChat,
-      from: userId
-    });
+    const receiverSocketId = users[receiverUserId]?.socketId;
+    if (receiverSocketId) {
+      socket.to(receiverSocketId).emit('receiver-chat', {
+        content: contentChat,
+        from: userId
+      });
+    }
   });
   socket.on('disconnect', () => {
     console.log(socket.id + ' disconnected');

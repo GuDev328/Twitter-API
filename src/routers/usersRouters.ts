@@ -4,6 +4,7 @@ import {
   followController,
   forgotPasswordController,
   getMeController,
+  getProfileController,
   loginController,
   loginGoogleController,
   logoutController,
@@ -23,6 +24,7 @@ import {
   changePasswordValidator,
   followValidator,
   forgotPasswordValidator,
+  getProfileValidator,
   loginValidator,
   refreshTokenValidator,
   registerValidator,
@@ -71,6 +73,14 @@ router.patch(
     'cover_photo'
   ]),
   catchError(updateMeController)
+);
+
+router.get(
+  '/get-profile',
+  getProfileValidator,
+  accessTokenValidator,
+  verifiedUserValidator,
+  catchError(getProfileController)
 );
 
 router.post('/follow', accessTokenValidator, verifiedUserValidator, followValidator, catchError(followController));

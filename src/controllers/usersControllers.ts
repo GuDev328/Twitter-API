@@ -126,6 +126,14 @@ export const updateMeController = async (req: Request<ParamsDictionary, any, Upd
   });
 };
 
+export const getProfileController = async (req: Request<ParamsDictionary, any, any>, res: Response) => {
+  const { _id, name, email, date_of_birth, bio, location, website, username, avatar, cover_photo } = req.body.user;
+  res.status(200).json({
+    result: { _id, name, email, date_of_birth, bio, location, website, username, avatar, cover_photo },
+    message: 'Get profile sucess'
+  });
+};
+
 export const followController = async (req: Request<ParamsDictionary, any, FollowRequest>, res: Response) => {
   const result = await userService.follow(req.body);
   res.status(200).json({

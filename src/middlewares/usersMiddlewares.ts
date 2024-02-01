@@ -398,6 +398,27 @@ export const updateMeValidator = validate(
   })
 );
 
+export const getProfileValidator = validate(
+  checkSchema({
+    username: {
+      isString: { errorMessage: 'Username must be a string' },
+      custom: {
+        options: async (value: string, { req }) => {
+          const result = await usersService.checkUsernameExists(value);
+          if (!result) {
+            throw new ErrorWithStatus({
+              message: 'User not found',
+              status: httpStatus.NOT_FOUND
+            });
+          }
+          req.body.user = result;
+          return true;
+        }
+      }
+    }
+  })
+);
+
 export const followValidator = validate(
   checkSchema({
     userId: {
