@@ -23,6 +23,7 @@ class ConversationsService {
           }
         ]
       })
+      .sort({ created_at: -1 })
       .skip(limit * (page - 1))
       .limit(limit)
       .toArray();
@@ -40,6 +41,7 @@ class ConversationsService {
     });
     return {
       result,
+      page,
       total_page: Math.ceil(total / limit)
     };
   }

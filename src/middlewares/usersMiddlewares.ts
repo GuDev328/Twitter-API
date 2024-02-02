@@ -538,3 +538,52 @@ export const isLoginValidator = (middleware: (req: Request, res: Response, next:
     next();
   };
 };
+
+export const getConversationsValidator = validate(
+  checkSchema({
+    receiverUserId: {
+      notEmpty: {
+        errorMessage: 'receiverUserId must not be empty'
+      },
+      custom: {
+        options: async (value, { req }) => {
+          if (!ObjectId.isValid(value)) {
+            throw new Error('receiverUserId is not valid');
+          }
+          const user = await usersService.checkUserIdExists(value);
+          if (!user) {
+            throw new ErrorWithStatus({
+              status: httpStatus.NOT_FOUND,
+              message: 'User not found'
+            });
+          }
+          return true;
+        }
+      }
+    },
+    limit: {
+      isNumeric: { errorMessage: 'Limit is a number' },
+      custom: {
+        options: (value: number) => {
+          const num = Number(value);
+          if (num > 50 || num < 1) {
+            throw new Error('Limit must be between 1 and 50');
+          }
+          return true;
+        }
+      }
+    },
+    page: {
+      isNumeric: { errorMessage: 'Page must is a number' },
+      custom: {
+        options: (value: number) => {
+          const num = Number(value);
+          if (num < 1) {
+            throw new Error('Page cannot be less than 1');
+          }
+          return true;
+        }
+      }
+    }
+  })
+);
