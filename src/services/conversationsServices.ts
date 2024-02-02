@@ -1,0 +1,49 @@
+import db from '~/services/databaseServices';
+import { config } from 'dotenv';
+import { ObjectId } from 'mongodb';
+import { httpStatus } from '~/constants/httpStatus';
+import { ErrorWithStatus } from '~/models/Errors';
+
+config();
+
+class ConversationsService {
+  constructor() {}
+
+  async getConversation(senderId: string, receiverUserId: string, limit: number, page: number) {
+    const result = await db.conversations
+      .find({
+        $or: [
+          {
+            receiver_id: new ObjectId(receiverUserId),
+            sender_id: new ObjectId(senderId)
+          },
+          {
+            receiver_id: new ObjectId(senderId),
+            sender_id: new ObjectId(receiverUserId)
+          }
+        ]
+      })
+      .skip(limit * (page - 1))
+      .limit(limit)
+      .toArray();
+    const total = await db.conversations.countDocuments({
+      $or: [
+        {
+          receiver_id: new ObjectId(receiverUserId),
+          sender_id: new ObjectId(senderId)
+        },
+        {
+          receiver_id: new ObjectId(senderId),
+          sender_id: new ObjectId(receiverUserId)
+        }
+      ]
+    });
+    return {
+      result,
+      total_page: Math.ceil(total / limit)
+    };
+  }
+}
+
+const conversationsService = new ConversationsService();
+export default conversationsService;

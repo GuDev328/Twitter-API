@@ -8,11 +8,14 @@ import tweetsRouters from '~/routers/tweetsRouters';
 import bookmarksRouters from '~/routers/bookmarksRouters';
 import likesRouters from '~/routers/likesRouters';
 import searchRouters from '~/routers/searchRouters';
+import conversationsRouters from '~/routers/conversationsRouters';
 import db from './services/databaseServices';
 import { defaultsErrorHandler } from './middlewares/errorsMiddlewares';
 import path from 'path';
 import cors from 'cors';
-import { da } from '@faker-js/faker';
+import { da, fr } from '@faker-js/faker';
+import Conversation from './models/schemas/ConversationSchema';
+import { ObjectId } from 'mongodb';
 // import '~/utils/faker';
 
 const app = express();
@@ -30,25 +33,33 @@ const users: {
 } = {};
 
 io.on('connection', (socket) => {
-  console.log(socket.id + 'connected');
   const userId = socket.handshake.auth._id;
   users[userId] = {
     socketId: socket.id
   };
-  console.log(users);
-  socket.on('chat', (data) => {
+  socket.on('chat', async (data) => {
     const contentChat = data.content;
-    const receiverUserId = data.to;
+    const receiverUserId = data.receiver_id;
+    const fromUserId = data.sender_id;
     const receiverSocketId = users[receiverUserId]?.socketId;
+
+    await db.conversations.insertOne(
+      new Conversation({
+        sender_id: new ObjectId(fromUserId),
+        receiver_id: new ObjectId(receiverUserId),
+        content: contentChat
+      })
+    );
+
     if (receiverSocketId) {
       socket.to(receiverSocketId).emit('receiver-chat', {
-        content: contentChat,
-        from: userId
+        sender_id: fromUserId,
+        receiver_id: receiverSocketId,
+        content: contentChat
       });
     }
   });
   socket.on('disconnect', () => {
-    console.log(socket.id + ' disconnected');
     delete users[userId];
   });
 });
@@ -69,6 +80,7 @@ app.use('/tweets', tweetsRouters);
 app.use('/bookmarks', bookmarksRouters);
 app.use('/likes', likesRouters);
 app.use('/search', searchRouters);
+app.use('/conversations', conversationsRouters);
 app.use(defaultsErrorHandler);
 
 const port = process.env.PORT || 3030;

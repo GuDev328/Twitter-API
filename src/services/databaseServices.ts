@@ -7,6 +7,7 @@ import Hashtag from '~/models/schemas/HashtagSchema';
 import Like from '~/models/schemas/LikeSchema';
 import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 import Tweet from '~/models/schemas/TweetSchema';
+import Conversation from '~/models/schemas/ConversationSchema';
 dotenv.config();
 const uri = process.env.MONGODB_URI;
 
@@ -70,6 +71,9 @@ class DatabaseServices {
   }
   get tweets(): Collection<Tweet> {
     return this.db.collection('Tweets');
+  }
+  get conversations(): Collection<Conversation> {
+    return this.db.collection('Conversations');
   }
 }
 
