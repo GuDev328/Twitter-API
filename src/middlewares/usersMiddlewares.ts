@@ -8,6 +8,7 @@ import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
 import db from '~/services/databaseServices';
 import usersService from '~/services/usersServices';
+import { accessTokenValidate } from '~/utils/common';
 import { verifyToken } from '~/utils/jwt';
 import { validate } from '~/utils/validation';
 
@@ -21,23 +22,8 @@ export const accessTokenValidator = validate(
         custom: {
           options: async (value: string, { req }) => {
             const accessToken = value.split(' ')[1];
-            if (accessToken === '') {
-              throw new ErrorWithStatus({
-                message: 'Access token is required',
-                status: 401
-              });
-            } else {
-              const decodeAuthorization = await verifyToken(accessToken);
-              req.body.decodeAuthorization = decodeAuthorization;
-              if (decodeAuthorization.payload.type !== TokenType.AccessToken) {
-                throw new ErrorWithStatus({
-                  message: 'Type of token is not valid',
-                  status: 401
-                });
-              }
-
-              return true;
-            }
+            await accessTokenValidate(accessToken, req as Request);
+            return true;
           }
         }
       }

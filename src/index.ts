@@ -1,6 +1,5 @@
 import express from 'express';
 import { createServer } from 'http';
-import { Server } from 'socket.io';
 import dotenv from 'dotenv';
 import usersRouters from '~/routers/usersRouters';
 import mediasRouters from '~/routers/mediasRouters';
@@ -11,58 +10,13 @@ import searchRouters from '~/routers/searchRouters';
 import conversationsRouters from '~/routers/conversationsRouters';
 import db from './services/databaseServices';
 import { defaultsErrorHandler } from './middlewares/errorsMiddlewares';
-import path from 'path';
 import cors from 'cors';
-import { da, fr } from '@faker-js/faker';
-import Conversation from './models/schemas/ConversationSchema';
-import { ObjectId } from 'mongodb';
+import initializeSocket from './utils/socket';
+
 // import '~/utils/faker';
 
 const app = express();
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: '*'
-  }
-});
-
-const users: {
-  [key: string]: {
-    socketId: string;
-  };
-} = {};
-
-io.on('connection', (socket) => {
-  const userId = socket.handshake.auth._id;
-  users[userId] = {
-    socketId: socket.id
-  };
-  socket.on('chat', async (data) => {
-    const contentChat = data.content;
-    const receiverUserId = data.receiver_id;
-    const fromUserId = data.sender_id;
-    const receiverSocketId = users[receiverUserId]?.socketId;
-
-    await db.conversations.insertOne(
-      new Conversation({
-        sender_id: new ObjectId(fromUserId),
-        receiver_id: new ObjectId(receiverUserId),
-        content: contentChat
-      })
-    );
-
-    if (receiverSocketId) {
-      socket.to(receiverSocketId).emit('receiver-chat', {
-        sender_id: fromUserId,
-        receiver_id: receiverSocketId,
-        content: contentChat
-      });
-    }
-  });
-  socket.on('disconnect', () => {
-    delete users[userId];
-  });
-});
 
 dotenv.config();
 
@@ -73,6 +27,8 @@ db.connect().then(() => {
 
 app.use(cors());
 app.use(express.json());
+
+initializeSocket(httpServer);
 
 app.use('/users', usersRouters);
 app.use('/medias', mediasRouters);
