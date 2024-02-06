@@ -12,8 +12,14 @@ import db from './services/databaseServices';
 import { defaultsErrorHandler } from './middlewares/errorsMiddlewares';
 import cors from 'cors';
 import initializeSocket from './utils/socket';
-
 // import '~/utils/faker';
+import swaggerUi from 'swagger-ui-express';
+import fs from 'fs';
+import YAML from 'yaml';
+import path from 'path';
+
+const file = fs.readFileSync(path.resolve('src/swagger.yaml'), 'utf8');
+const swaggerDocument = YAML.parse(file);
 
 const app = express();
 const httpServer = createServer(app);
@@ -30,6 +36,7 @@ app.use(express.json());
 
 initializeSocket(httpServer);
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use('/users', usersRouters);
 app.use('/medias', mediasRouters);
 app.use('/tweets', tweetsRouters);

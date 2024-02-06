@@ -1,0 +1,2106 @@
+openapi: 3.0.3
+info:
+  title: Swagger TwitterClone - OpenAPI 3.0
+  description: |-
+    # Project Clone Api Twitter by GuDev
+    ## Các công nghệ sử dụng:
+    * **Framework:** Express.js
+    * **Ngôn ngữ:** TypeScript
+    * **Database:** NoSQL (MongoDB)
+    * **Authentication:** JWT & OAuth 2.0 (Google)
+    * **Email Service:** AWS SES
+    * **Upload File:** Server storage & AWS S3
+    * **File Handling:** Upload and resize image, video
+    * **Streaming:** Node.js Stream & HLS (HTTP Live Streaming)
+    * **Websocket:** Socket.io
+    * **TypeODM:** MongoDB Node.js Driver
+    * **Test API:** Postman
+    * **Deployment:** Docker & EC2 (AWS)
+    * **API Documentation:** Swagger
+
+  contact:
+    email: phamdat.work@gmail.com
+  version: 1.0.11
+servers:
+  - url: http://localhost:3030
+tags:
+  - name: user
+    description: Everything about Users
+  - name: media
+    description: Everything about Medias
+  - name: tweet
+    description: Everything about Tweets
+  - name: conversation
+    description: Everything about Conversations
+
+
+
+
+
+paths:
+  /users/login:
+    post:
+      tags:
+        - user
+      summary: Đăng nhập
+      description: 'Đăng nhập vào hệ thống trả về token'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginSuccess'
+  /users/oauth/google:
+    get:
+      tags:
+        - user
+      summary: Đăng nhập với google
+      description: 'API nhận response google về, Đăng nhập thành công server sẽ redirect về client với token gửi qua params'
+      parameters:
+        - name: googlequery
+          in: query
+          description: Tham số truy vấn trả về bởi google
+          schema:
+            type: object
+            properties:
+              code:
+                type: string
+                description: Mã xác thực từ Google
+                example: '4/0AfJohXloKW0HUdZ_rQQXUuqQvZqLVYUhP62qXxcb8aBMoOATYbp9-hEgIvpdFKQAnUGVbw'
+              scope:
+                type: string
+                description: Phạm vi quyền truy cập được yêu cầu từ Google
+                example: 'email profile openid https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email'
+              authuser:
+                type: string
+                description: ID người dùng được xác thực (nếu có)
+                example: '0'
+              prompt:
+                type: string
+                description: Lựa chọn hiển thị cửa sổ xác thực cho người dùng
+                example: 'consent'
+            required:
+              - code
+              - scope
+              - authuser
+              - prompt
+
+      responses:
+        '200':
+          description: successful operation        
+  /users/register:
+    post:
+      tags:
+        - user
+      summary: Đăng ký
+      description: 'Đăng ký tài khoản và trả về token'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterBody'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterSuccess'
+  /users/logout:
+    post:
+      tags:
+        - user
+      summary: Đăng xuất
+      description: 'Đăng xuất, xoá refreshToken khỏi DB'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken: 
+                  type: string
+                  format: JWT
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YmYzZTBhYzNlYTBlNTA5Zjg3NmU1NiIsInR5cGUiOjEsInZlcmlmeSI6MH0sImlhdCI6MTcwNzAzMjA3NCwiZXhwIjoxNzE1NjcyMDc0fQ.CsmxNg-O0qc-79ps28mylv-xNr61TBip-Bp9K7WKyT4"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    format: JWT
+                    example: "Logout Success"
+      security:
+        - BearerAuth: []
+  /users/refresh-token:
+    post:
+      tags:
+        - user
+      summary: Refresh Token
+      description: 'Làm mới accessToken khi bị hết hạn'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken: 
+                  type: string
+                  format: JWT
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YmYzZTBhYzNlYTBlNTA5Zjg3NmU1NiIsInR5cGUiOjEsInZlcmlmeSI6MH0sImlhdCI6MTcwNzAzMjA3NCwiZXhwIjoxNzE1NjcyMDc0fQ.CsmxNg-O0qc-79ps28mylv-xNr61TBip-Bp9K7WKyT4"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshTokenSuccess'
+      security:
+        - BearerAuth: []    
+  /users/verify-email:
+    post:
+      tags:
+        - user
+      summary: Xác thực email
+      description: 'Xác thực người dùng'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                emailVerifyToken: 
+                  type: string
+                  format: JWT
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YjEyY2JlZDhhZGQ3NDNjNjhlMTA3YSIsInR5cGUiOjN9LCJpYXQiOjE3MDcwMzcwMzd9.faXZu12-7FTQT3oWPei-qcyKO23JSlL9RCHhsGoqxAY"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Verify email suscess"  
+  /users/resend-verify-email:
+    post:
+      tags:
+        - user
+      summary: Gửi lại email
+      description: 'Sign token mới và gửi lại email xác thực'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Resend verify email suscess"            
+      security:
+        - BearerAuth: []       
+  /users/forgot-password:
+    post:
+      tags:
+        - user
+      summary: Quên mật khẩu
+      description: 'Gửi email chứa token quên mật khẩu về email'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: 
+                  type: string
+                  format: email
+                  example: "phamdat.study@gmail.com"
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Forgot password success"
+  /users/reset-password:
+    post:
+      tags:
+        - user
+      summary: Khôi phục mật khẩu
+      description: 'Khôi phục mật khẩu với token và mật khẩu mới'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordBody'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Reset password success"  
+  /users/get-me:
+    get:
+      tags:
+        - user
+      summary: Lấy thông tin chính mình
+      description: 'Lấy thông tin chính mình'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMeSuccess'       
+      security:
+        - BearerAuth: []    
+  /users/update-me:
+    patch:
+      tags:
+        - user
+      summary: Cập nhật thông tin tài khoản
+      description: 'Cập nhật thông tin tài khoản'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMeBody'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateMeSuccess'
+      security:
+        - BearerAuth: []  
+  /users/get-profile/{username}:
+    get:
+      tags:
+        - user
+      summary: Lấy thông tin tài khoản
+      description: 'Lấy thông tin tài khoản của người khác theo username'
+      parameters:
+        - name: username
+          in: path
+          description: username 
+          required: true
+          schema:
+            type: string  
+            example: 'strindg'    
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetProfileSuccess'
+      security:
+        - BearerAuth: []  
+  /users/follow:
+    post:
+      tags:
+        - user
+      summary: Follow người dùng
+      description: 'Follow 1 tài khoản'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: MongoId
+                  example: '65b12cbed8add743c68e107d'
+        required: true   
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Follow sucess"  
+      security:
+        - BearerAuth: []  
+  /users/unfollow:
+    post:
+      tags:
+        - user
+      summary: Huỷ Follow
+      description: 'Huỷ Follow 1 tài khoản'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  format: MongoId
+                  example: '65b12cbed8add743c68e107d'
+        required: true   
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Unfollow sucess"  
+      security:
+        - BearerAuth: []        
+  /users/change-password:
+    post:
+      tags:
+        - user
+      summary: Thay đổi mật khẩu
+      description: 'Thay đổi mật khẩu'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordBody'
+        required: true   
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Change Password sucess"  
+      security:
+        - BearerAuth: []     
+  /users/set-circle:
+    post:
+      tags:
+        - user
+      summary: Cập nhật user circle
+      description: 'Cập nhật danh sách người xem bài viết khi ở chế độ không công khai'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userIds:
+                  type: array
+                  items:
+                    type: string
+                  description: Danh sách các ID người dùng
+                  example: ["65b12c6d3742e26204688ef1", "65b12cbed8add743c68e107d"]
+              required:
+                - userIds
+        required: true   
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Set Users Circle sucess"  
+      security:
+        - BearerAuth: []     
+
+  /search/:
+    get:
+      tags:
+        - search
+      summary: Tìm kiếm
+      description: Tìm kiếm qua từ khoá, trả về tweet hoặc user, có phân trang
+      parameters:
+        - name: key
+          in: query
+          description: Từ khoá tìm kiếm
+          required: true
+          schema:
+            type: string  
+            example: Amplitudo odit  
+        - name: limit
+          in: query
+          description: số phần tử lấy cho 1 trang
+          required: true
+          schema:
+            type: number
+            example:  10
+        - name: page
+          in: query
+          description: số trang
+          required: true
+          schema:
+            type: number
+            example:  1
+        - name: onlyFollowedUsers
+          in: query
+          description: Chỉ lấy các tweet của người đã follow
+          required: true
+          schema:
+            type: boolean
+            example:  true
+      responses:
+        '200':
+          description: successful operation   
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchSuccess'
+      security:
+        - BearerAuth: []
+
+  /medias/upload-image:
+    post:
+      tags:
+        - media
+      summary: Đăng tải ảnh
+      description: 'Đăng ảnh lên server và lưu trên dịch vụ S3 AWS. Tối đa 10 ảnh. Kết quả trả về liên kết tới ảnh'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Danh sách các file để tải lên
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadImageSuccess'
+      security:
+        - BearerAuth: []    
+  /medias/upload-video:
+    post:
+      tags:
+        - media
+      summary: Đăng tải video
+      description: 'Đăng video lên server và lưu trên dịch vụ S3 AWS. Tối đa 5 video. Kết quả trả về liên kết tới video'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                video:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Danh sách các file để tải lên
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadVideoSuccess'
+      security:
+        - BearerAuth: []      
+  /medias/upload-video-hls:
+    post:
+      tags:
+        - media
+      summary: Đăng tải video HLS
+      description: 'Đăng video lên server xử lý encode HLS trong queue và lưu trên dịch vụ S3 AWS. Tối đa 1 video. Kết quả trả về liên kết tới video(file .m3u8)'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                video:          
+                  type: string
+                  format: binary
+                  description: Danh sách file để tải lên
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UploadVideoHLSSuccess'
+      security:
+        - BearerAuth: []    
+  /medias/getStatusUploadVideoHLS/{id}:
+    get:
+      tags:
+        - media
+      summary: Lấy trạng thái đăng tải video HLS
+      description: 'Lấy trạng thái đăng tải video HLS'
+      parameters:
+        - name: id
+          in: path
+          description: id của video 
+          required: true
+          schema:
+            type: string  
+            example: 'ibT62DEKlztoMf87_gKYa'    
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result: 
+                    type: string
+                    example: Uploaded
+                    description: 'Có 2 trạng thái là Uploaded và Processing'
+      security:
+        - BearerAuth: []
+  /medias/video-hls/{id}/master.m3u8:
+    get:
+      tags:
+        - media
+      summary: Get file .m3u8 video HLS
+      description: 'Get file .m3u8 video HLS trên S3 AWS dùng server làm proxy'
+      parameters:
+        - name: id
+          in: path
+          description: id của video 
+          required: true
+          schema:
+            type: string  
+            example: 'ibT62DEKlztoMf87_gKYa'    
+      responses:
+        '200':
+          description: successful operation   
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+                format: binary   
+                description: File .m3u8 video HLS
+                example: |
+                  #EXTM3U
+                  #EXT-X-VERSION:3
+                  #EXT-X-STREAM-INF:BANDWIDTH=778801,RESOLUTION=1282x720,CODECS="avc1.640032,mp4a.40.2"
+                  v0/prog_index.m3u8
+
+                  #EXT-X-STREAM-INF:BANDWIDTH=778801,RESOLUTION=1924x1080,CODECS="avc1.640033,mp4a.40.2"
+                  v1/prog_index.m3u8
+      security:
+        - BearerAuth: []
+  /medias/video-hls/{id}/{v}/{segment}:
+    get:
+      tags:
+        - media
+      summary: Get các file con của video HLS (file .ts, ...)
+      description: 'Get các file con của video HLS (file .ts, .m3u8, ...) trên S3 AWS dùng server làm proxy'
+      parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID của video
+        schema:
+          type: string
+        example: "ibT62DEKlztoMf87_gKYa"
+      - name: v
+        in: path
+        required: true
+        description: Giá trị v (v0,v1,v2, ...)
+        schema:
+          type: string
+        example: "v0"
+      - name: segment
+        in: path
+        required: true
+        description: Giá trị segment, file cần lấy
+        schema:
+          type: string
+        example: "fileSequence0.ts"
+
+      responses:
+        '200':
+          description: successful operation   
+          content:
+            application/vnd.apple.mpegurl:
+              schema:
+                type: string
+                format: binary   
+                description: File .m3u8 video HLS
+                example: 'File cần lấy (.ts, .m3u8,...)'
+      security:
+        - BearerAuth: []
+
+  /tweets/create-tweet:
+    post:
+      tags:
+        - tweet
+      summary: Đăng tải 1 tweet mới
+      description: 'Đăng tải 1 tweet mới, trả về id của tweet'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTweetBody'
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateTweetSuccess'
+      security:
+        - BearerAuth: []
+  /tweets/tweet/{id}:
+    get:
+      tags:
+        - tweet
+      summary: Lấy thông tin 1 tweet
+      description: Lấy thông tin 1 tweet với id truyền qua params
+      parameters:
+        - name: id
+          in: path
+          description: id của bài tweet 
+          required: true
+          schema:
+            type: string  
+            example: '65c079f9d024f65eeb12558a'    
+      responses:
+        '200':
+          description: successful operation   
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTweetSuccess'
+      security:
+        - BearerAuth: []
+  /tweets/tweet/{id}/children:
+    get:
+      tags:
+        - tweet
+      summary: Lấy các tweet con của 1 tweet
+      description: Lấy các tweet con (Retweet, Comment, QuoteTweet) của 1 tweet 
+      parameters:
+        - name: id
+          in: path
+          description: id của bài tweet 
+          required: true
+          schema:
+            type: string  
+            example: '65c079f9d024f65eeb12558a' 
+        - name: limit
+          in: query
+          description: số phần tử lấy cho 1 trang 
+          required: true
+          schema:
+            type: number  
+            example: 3  
+        - name: page
+          in: query
+          description: trang 
+          required: true
+          schema:
+            type: number  
+            example: 1  
+        - name: tweet_type
+          in: query
+          description: Loại tweet con muốn lấy (Retweet, Comment, QuoteTweet)
+          required: true
+          schema:
+            type: number  
+            example: 2 
+      responses:
+        '200':
+          description: successful operation   
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTweetChildrenSuccess'
+      security:
+        - BearerAuth: []
+  /tweets/:
+    get:
+      tags:
+        - tweet
+      summary: Lấy News Feed
+      description: Lấy News Feed, có phần trang
+      parameters:
+        - name: limit
+          in: query
+          description: số phần tử lấy cho 1 trang 
+          required: true
+          schema:
+            type: number  
+            example: 10  
+        - name: page
+          in: query
+          description: trang 
+          required: true
+          schema:
+            type: number  
+            example: 1  
+      responses:
+        '200':
+          description: successful operation   
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetNewsFeedSuccess'
+      security:
+        - BearerAuth: []
+
+  /bookmarks/bookmark:
+    post:
+      tags:
+        - tweet
+      summary: Bookmark 1 bài viết
+      description: Bookmark 1 bài viết
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tweet_id:
+                  type: string
+                  format: MongoId
+                  example: '65c079f9d024f65eeb12558a'
+        required: true   
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Bookmark sucess"  
+      security:
+        - BearerAuth: []  
+  /bookmarks/unbookmark:
+    post:
+      tags:
+        - tweet
+      summary: Huỷ Bookmark 1 bài viết
+      description: Huỷ Bookmark 1 bài viết
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tweet_id:
+                  type: string
+                  format: MongoId
+                  example: '65c079f9d024f65eeb12558a'
+        required: true   
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Unbookmark sucess"  
+      security:
+        - BearerAuth: []        
+  /likes/like:
+    post:
+      tags:
+        - tweet
+      summary: Thích 1 bài viết
+      description: Thích 1 bài viết
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tweet_id:
+                  type: string
+                  format: MongoId
+                  example: '65c079f9d024f65eeb12558a'
+        required: true   
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Like sucess"  
+      security:
+        - BearerAuth: []  
+  /likes/unlike:
+    post:
+      tags:
+        - tweet
+      summary: Huỷ thích 1 bài viết
+      description: Huỷ thích 1 bài viết
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tweet_id:
+                  type: string
+                  format: MongoId
+                  example: '65c079f9d024f65eeb12558a'
+        required: true   
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: 
+                    type: string
+                    example: "Unlike sucess"  
+      security:
+        - BearerAuth: []        
+
+
+  /conversations/get-conversation/{receiverUserId}:
+    get:
+      tags:
+        - conversation
+      summary: Lấy tin nhắn với 1 người
+      description: Lấy tin nhắn với 1 người với receiverUserId truyền qua params, có phân trang
+      parameters:
+        - name: receiverUserId
+          in: path
+          description: id của đối phương
+          required: true
+          schema:
+            type: string  
+            example: '65b74928a67eb597e9412d1f'    
+        - name: limit
+          in: query
+          description: số phần tử lấy cho 1 trang
+          required: true
+          schema:
+            type: number
+            example:  10
+        - name: page
+          in: query
+          description: số trang
+          required: true
+          schema:
+            type: number
+            example:  1
+      responses:
+        '200':
+          description: successful operation   
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetConversationSuccess'
+      security:
+        - BearerAuth: []
+components:
+  schemas:
+    LoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Tên đăng nhập
+          example: datminiphi@gmail.com
+        password:
+          type: string
+          format: password
+          description: Mật khẩu đăng nhập
+          example: 123456789
+      required:
+        - email
+        - password
+    LoginSuccess:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: Access token
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YjEyYzZkMzc0MmUyNjIwNDY4OGVmMSIsInR5cGUiOjAsInZlcmlmeSI6MX0sImlhdCI6MTcwNzAzMTMwNywiZXhwIjoxNzA3MDMxMzM3fQ.Tkn4mBkHiXQFzwt0QeoTSNkLqo3mwpq_n67zx3OpXXY"
+            refreshToken:
+              type: string
+              description: Refresh token
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YjEyYzZkMzc0MmUyNjIwNDY4OGVmMSIsInR5cGUiOjEsInZlcmlmeSI6MX0sImlhdCI6MTcwNzAzMTMyOSwiZXhwIjoxNzE1NjcxMzI5fQ.BM63KtxoOYki38xsTSMnzSqaO6r1cM23VymgUKHUhPM"
+        message: 
+          type: string
+          example: "Login suscess"
+    RegisterBody:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Họ và tên
+          example: Phạm Tiến Đạt
+        email:
+          type: string
+          format: email
+          description: Tên đăng nhập
+          example: datbbu328@gmail.com
+        password:
+          type: string
+          format: password
+          description: Mật khẩu đăng nhập
+          example: 12345678
+        confirmPassword:
+          type: string
+          format: password
+          description: Xác nhận mật khẩu
+          example: 12345678
+        date_of_birth:
+          type: string
+          format: date-time
+          description: Ngày sinh
+          example: 2023-10-20T04:08:03.560Z
+        username:
+          type: string
+          description: Tên người dùng
+          example: Gufvádev
+      required:
+        - email
+        - password
+    RegisterSuccess:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: Token truy cập
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YmYzZTBhYzNlYTBlNTA5Zjg3NmU1NiIsInR5cGUiOjAsInZlcmlmeSI6MH0sImlhdCI6MTcwNzAzMjA3NCwiZXhwIjoxNzA3MDMyMTA0fQ.TEF_Gzw3vAKkWWK76Wi8doHls-8ApjaABxOtw1bPXTU"
+            refreshToken:
+              type: string
+              description: Token làm mới
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YmYzZTBhYzNlYTBlNTA5Zjg3NmU1NiIsInR5cGUiOjEsInZlcmlmeSI6MH0sImlhdCI6MTcwNzAzMjA3NCwiZXhwIjoxNzE1NjcyMDc0fQ.CsmxNg-O0qc-79ps28mylv-xNr61TBip-Bp9K7WKyT4"
+          required:
+            - accessToken
+            - refreshToken
+        message:
+          type: string
+          description: Thông báo kết quả đăng ký
+          example: "Register success"
+    RefreshTokenSuccess:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: Access token
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YjEyYzZkMzc0MmUyNjIwNDY4OGVmMSIsInR5cGUiOjAsInZlcmlmeSI6MX0sImlhdCI6MTcwNzAzMTMwNywiZXhwIjoxNzA3MDMxMzM3fQ.Tkn4mBkHiXQFzwt0QeoTSNkLqo3mwpq_n67zx3OpXXY"
+            refreshToken:
+              type: string
+              description: Refresh token
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YjEyYzZkMzc0MmUyNjIwNDY4OGVmMSIsInR5cGUiOjEsInZlcmlmeSI6MX0sImlhdCI6MTcwNzAzMTMyOSwiZXhwIjoxNzE1NjcxMzI5fQ.BM63KtxoOYki38xsTSMnzSqaO6r1cM23VymgUKHUhPM"
+        message: 
+          type: string
+          example: "refresh Token suscess"
+    ResetPasswordBody:
+      type: object
+      properties:
+        forgotPasswordToken:
+          type: string
+          description: Token quên mật khẩu
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXlsb2FkIjp7InVzZXJJZCI6IjY1YjEyYzZkMzc0MmUyNjIwNDY4OGVmMSIsInR5cGUiOjJ9LCJpYXQiOjE3MDcwMzgzMTl9.vajc_T7nrZBFArtZQYcxwrm6DlzUqt-iAPVdcE56cd0"
+        password:
+          type: string
+          format: password
+          description: Mật khẩu mới
+          example: 12345678
+        confirmPassword:
+          type: string
+          format: password
+          description: Xác nhận mật khẩu mới
+          example: 12345678
+      required:
+        - forgotPasswordToken
+        - password
+        - confirmPassword
+    GetMeSuccess:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            _id:
+              type: string
+              description: ID của người dùng
+              example: "65b12c6d3742e26204688ef1"
+            name:
+              type: string
+              description: Tên của người dùng
+              example: "fffff"
+            email:
+              type: string
+              format: email
+              description: Email của người dùng
+              example: "datminiphi@gmail.com"
+            date_of_birth:
+              type: string
+              format: date-time
+              description: Ngày sinh của người dùng
+              example: "2024-11-15T12:30:00.000Z"
+            created_at:
+              type: string
+              format: date-time
+              description: Ngày tạo tài khoản
+              example: "2024-01-24T15:27:41.373Z"
+            updated_at:
+              type: string
+              format: date-time
+              description: Ngày cập nhật tài khoản
+              example: "2024-02-04T09:24:30.136Z"
+            verify:
+              type: integer
+              description: Trạng thái xác thực
+              example: 1
+            twitter_circle:
+              type: array
+              items:
+                type: string
+              description: Danh sách Twitter circle
+              example: []
+            bio:
+              type: string
+              description: Tiểu sử người dùng
+              example: "dd"
+            location:
+              type: string
+              description: Địa chỉ người dùng
+              example: "strdding"
+            website:
+              type: string
+              description: Website người dùng
+              example: "hi.cddom"
+            username:
+              type: string
+              description: Tên người dùng
+              example: "datminiphi"
+            avatar:
+              type: string
+              description: Link ảnh đại diện
+              example: "hihi.dcom"
+            cover_photo:
+              type: string
+              description: Link ảnh cover
+              example: "hhaha.cddom"
+        message:
+          type: string
+          example: "Get me success"
+    UpdateMeBody:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Tên của người dùng
+          example: "fffff"
+        date_of_birth:
+          type: string
+          format: date-time
+          description: Ngày sinh của người dùng
+          example: "2024-11-15T12:30:00.000Z"
+        bio:
+          type: string
+          description: Tiểu sử người dùng
+          example: "dd"
+        location:
+          type: string
+          description: Địa chỉ người dùng
+          example: "strdding"
+        website:
+          type: string
+          description: Website người dùng
+          example: "hi.cddom"
+        username:
+          type: string
+          description: Tên người dùng
+          example: "strindg"
+        avatar:
+          type: string
+          description: Link ảnh đại diện
+          example: "hihi.dcom"
+        cover_photo:
+          type: string
+          description: Link ảnh cover
+          example: "hhaha.cddom"
+        sfsfsdfsdffsd:
+          type: string
+          description: Trường không có trong DB
+          example: "áddadddas"
+      required:
+        - name
+        - date_of_birth
+        - bio
+        - location
+        - website
+        - username
+        - avatar
+        - cover_photo
+    UpdateMeSuccess:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            _id:
+              type: string
+              description: ID của người dùng
+              example: "65b12cbed8add743c68e107a"
+            name:
+              type: string
+              description: Tên của người dùng
+              example: "fffff"
+            email:
+              type: string
+              format: email
+              description: Email của người dùng
+              example: "Dylan.Lakin65@hotmail.com"
+            date_of_birth:
+              type: string
+              format: date-time
+              description: Ngày sinh của người dùng
+              example: "2024-11-15T12:30:00.000Z"
+            created_at:
+              type: string
+              format: date-time
+              description: Ngày tạo tài khoản
+              example: "2024-01-24T15:29:10.136Z"
+            updated_at:
+              type: string
+              format: date-time
+              description: Ngày cập nhật tài khoản
+              example: "2024-02-04T08:58:26.887Z"
+            verify:
+              type: integer
+              description: Trạng thái xác thực
+              example: 1
+            twitter_circle:
+              type: array
+              items:
+                type: string
+              description: Danh sách Twitter circle
+              example: []
+            bio:
+              type: string
+              description: Tiểu sử người dùng
+              example: "dd"
+            location:
+              type: string
+              description: Địa chỉ người dùng
+              example: "strdding"
+            website:
+              type: string
+              description: Website người dùng
+              example: "hi.cddom"
+            username:
+              type: string
+              description: Tên người dùng
+              example: "strindg"
+            avatar:
+              type: string
+              description: Link ảnh đại diện
+              example: "hihi.dcom"
+            cover_photo:
+              type: string
+              description: Link ảnh cover
+              example: "hhaha.cddom"
+        message:
+          type: string
+          example: "Update me sucess"
+    GetProfileSuccess:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            _id:
+              type: string
+              description: ID của người dùng
+              example: "65b12cbed8add743c68e107a"
+            name:
+              type: string
+              description: Tên của người dùng
+              example: "fffff"
+            email:
+              type: string
+              format: email
+              description: Email của người dùng
+              example: "Dylan.Lakin65@hotmail.com"
+            date_of_birth:
+              type: string
+              format: date-time
+              description: Ngày sinh của người dùng
+              example: "2024-11-15T12:30:00.000Z"
+            bio:
+              type: string
+              description: Tiểu sử người dùng
+              example: "dd"
+            location:
+              type: string
+              description: Địa chỉ người dùng
+              example: "strdding"
+            website:
+              type: string
+              description: Website người dùng
+              example: "hi.cddom"
+            username:
+              type: string
+              description: Tên người dùng
+              example: "strindg"
+            avatar:
+              type: string
+              description: Link ảnh đại diện
+              example: "hihi.dcom"
+            cover_photo:
+              type: string
+              description: Link ảnh cover
+              example: "hhaha.cddom"
+          required:
+            - _id
+            - name
+            - email
+            - date_of_birth
+            - bio
+            - location
+            - website
+            - username
+            - avatar
+            - cover_photo
+        message:
+          type: string
+          example: "Get profile sucess"
+    ChangePasswordBody:
+      type: object
+      properties:
+        oldPassword:
+          type: string
+          format: password
+          description: Mật khẩu hiện tại
+          example: "12345678"
+        newPassword:
+          type: string
+          format: password
+          description: Mật khẩu mới
+          example: "123456789"
+        confirmPassword:
+          type: string
+          format: password
+          description: Xác nhận mật khẩu mới
+          example: "123456789"
+      required:
+        - oldPassword
+        - newPassword
+        - confirmPassword
+    UploadImageSuccess:
+        type: object
+        properties:
+          result:
+            type: array
+            items:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: Đường dẫn của hình ảnh đã tải lên
+                  example: "https://twitter-clone-gudev.s3.ap-southeast-1.amazonaws.com/images/39d80bf1f439a233d735fb502.png"
+                type:
+                  type: integer
+                  description: Loại media (0 image, 1 video, 2 videoHLS)
+                  example: 0
+            description: Mảng chứa thông tin về các hình ảnh đã tải lên
+          message:
+            type: string
+            example: "Upload image success"
+    UploadVideoSuccess:
+        type: object
+        properties:
+          result:
+            type: array
+            items:
+              type: object
+              properties:
+                url:
+                  type: string
+                  description: Đường dẫn của video đã tải lên
+                  example: "https://twitter-clone-gudev.s3.ap-southeast-1.amazonaws.com/videos/39d80bf1f439a233d735fb504.mp4"
+                type:
+                  type: integer
+                  description: Loại media (0 image, 1 video, 2 videoHLS)
+                  example: 1
+            description: Mảng chứa thông tin về các video đã tải lên
+          message:
+            type: string
+            example: "Upload video success"
+    UploadVideoHLSSuccess:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+                description: Đường dẫn của video HLS đã tải lên
+                example: "http://localhost:3030/medias/video-hls/ibT62DEKlztoMf87_gKYa/master.m3u8"
+              type:
+                type: integer
+                description: Loại media (0 image, 1 video, 2 videoHLS)
+                example: 2
+          description: Mảng chứa thông tin về video HLS đã tải lên
+        message:
+          type: string
+          example: "Upload video HLS success"     
+    CreateTweetBody:
+      type: object
+      properties:
+        type:
+          type: integer
+          description: Loại bài viết (0 Tweet, 1 Retweet, 2 Comment, 3 QuoteTweet)
+          example: 0
+        audience:
+          type: integer
+          description: Đối tượng xem (0 public, 1 private (tweet circle), ...)
+          example: 0
+        content:
+          type: string
+          description: Nội dung bài viết
+          example: "TestTweet"
+        parent_id:
+          type: string
+          description: ID của bài viết cha (nếu có)
+          example: null
+        hashtags:
+          type: array
+          items:
+            type: string
+          description: Danh sách các hashtag
+          example: ["123", "345", "567", "789"]
+        mentions:
+          type: array
+          items:
+            type: string
+          description: Danh sách các người được đề cập đến
+          example: ["653e8338a18fa8ecac9fa1ab", "653e8338a18fa8ecac9fa1ab"]
+        medias:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: integer
+                description: Loại phương tiện (0 hình ảnh, 1 video, 2 video HLS)
+                example: 1
+              url:
+                type: string
+                description: Đường dẫn của phương tiện
+                example: "gdsfg.hsdf"
+          description: Danh sách các phương tiện đính kèm
+      required:
+        - type
+        - audience
+        - content
+        - hashtags
+        - mentions
+    CreateTweetSuccess:
+      type: object
+      properties:
+        result:
+          type: string
+          description: ID của bài viết mới được tạo
+          example: "65c079f9d024f65eeb12558a"
+        message:
+          type: string
+          example: "Create new tweet success"
+    GetTweetSuccess:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            _id:
+              type: string
+              description: ID của bài viết
+              example: "65c079f9d024f65eeb12558a"
+            user_id:
+              type: string
+              description: ID của người tạo bài viết
+              example: "65b12cbed8add743c68e107a"
+            type:
+              type: integer
+              description: Loại bài viết (0 Tweet, 1 Retweet, 2 Comment, 3 QuoteTweet)
+              example: 0
+            audience:
+              type: integer
+              description: Đối tượng xem (0 public, 1 private (tweet circle), ...)
+              example: 0
+            content:
+              type: string
+              description: Nội dung bài viết
+              example: "TestTweet"
+            parent_id:
+              type: string
+              description: ID của bài viết cha (nếu có)
+              example: null
+            medias:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: integer
+                    description: Loại phương tiện (0 hình ảnh, 1 video, 2 video HLS)
+                    example: 1
+                  url:
+                    type: string
+                    description: Đường dẫn của phương tiện
+                    example: "gdsfg.hsdf"
+              description: Danh sách các phương tiện đính kèm
+            guest_views:
+              type: integer
+              description: Số lượt xem từ người không đăng nhập
+              example: 0
+            user_views:
+              type: integer
+              description: Số lượt xem từ người đăng nhập
+              example: 1
+            created_at:
+              type: string
+              format: date-time
+              description: Thời điểm tạo bài viết
+              example: "2024-02-05T06:02:33.972Z"
+            updated_at:
+              type: string
+              format: date-time
+              description: Thời điểm cập nhật bài viết
+              example: "2024-02-05T06:08:21.214Z"
+            hashtags:
+              type: array
+              items:
+                type: string
+              description: Danh sách các hashtag
+              example: []
+            mentions:
+              type: array
+              items:
+                type: string
+              description: Danh sách các người được đề cập đến
+              example: []
+            bookmarks:
+              type: integer
+              description: Số lượt lưu bài viết
+              example: 0
+            likes:
+              type: integer
+              description: Số lượt thích bài viết
+              example: 0
+            retweet:
+              type: integer
+              description: Số lượt chia sẻ bài viết
+              example: 0
+            comment:
+              type: integer
+              description: Số lượt bình luận bài viết
+              example: 0
+            quote_tweet:
+              type: integer
+              description: Số lượt trích dẫn bài viết
+              example: 0
+          description: Thông tin chi tiết của bài viết
+        message:
+          type: string
+          example: "Get tweet success"
+    GetTweetChildrenSuccess:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: ID của bài viết con
+                example: "65c07d67d024f65eeb12558e"
+              user_id:
+                type: string
+                description: ID của người tạo bài viết con
+                example: "65b12cbed8add743c68e107a"
+              type:
+                type: integer
+                description: Loại bài viết (0 Tweet, 1 Retweet, 2 Comment, 3 QuoteTweet)
+                example: 2
+              audience:
+                type: integer
+                description: Đối tượng xem của bài viết con (0 public, 1 private (tweet circle), ...)
+                example: 0
+              content:
+                type: string
+                description: Nội dung của bài viết con
+                example: "Cmt1"
+              parent_id:
+                type: string
+                description: ID của bài viết cha
+                example: "65c079f9d024f65eeb12558a"
+              medias:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: integer
+                      description: Loại phương tiện (0 hình ảnh, 1 video, 3 video HLS)
+                      example: 1
+                    url:
+                      type: string
+                      description: Đường dẫn của phương tiện
+                      example: "gdsfg.hsdf"
+                description: Danh sách các phương tiện đính kèm của bài viết con
+              guest_views:
+                type: integer
+                description: Số lượt xem từ người không đăng nhập
+                example: 0
+              user_views:
+                type: integer
+                description: Số lượt xem từ người đăng nhập
+                example: 1
+              created_at:
+                type: string
+                format: date-time
+                description: Thời điểm tạo bài viết con
+                example: "2024-02-05T06:17:11.881Z"
+              updated_at:
+                type: string
+                format: date-time
+                description: Thời điểm cập nhật bài viết con
+                example: "2024-02-05T06:17:39.323Z"
+              hashtags:
+                type: array
+                items:
+                  type: string
+                description: Danh sách các hashtag
+                example: []
+              mentions:
+                type: array
+                items:
+                  type: string
+                description: Danh sách các người được đề cập đến
+                example: []
+              bookmarks:
+                type: integer
+                description: Số lượt lưu bài viết con
+                example: 0
+              likes:
+                type: integer
+                description: Số lượt thích bài viết con
+                example: 0
+              retweet:
+                type: integer
+                description: Số lượt chia sẻ bài viết con
+                example: 0
+              comment:
+                type: integer
+                description: Số lượt bình luận bài viết con
+                example: 0
+              quote_tweet:
+                type: integer
+                description: Số lượt trích dẫn bài viết con
+                example: 0
+          description: Danh sách thông tin chi tiết của các bài viết con
+        total_page:
+          type: integer
+          description: Tổng số trang
+          example: 1
+        page:
+          type: integer
+          description: Trang hiện tại
+          example: 1
+        limit:
+          type: integer
+          description: Số lượng bài viết trên mỗi trang
+          example: 3
+        tweet_type:
+          type: integer
+          description: Loại bài viết (0 Tweet, 1 Retweet, 2 Comment, 3 QuoteTweet)
+          example: 2
+        message:
+          type: string
+          example: "Get tweet children success"
+      required:
+        - result
+        - total_page
+        - page
+        - limit
+        - tweet_type
+        - message
+    GetNewsFeedSuccess:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: ID của bài viết
+                example: "65b12cc9d8add743c68e11a6"
+              user_id:
+                type: string
+                description: ID của người tạo bài viết
+                example: "65b12cbed8add743c68e107a"
+              type:
+                type: integer
+                description: Loại bài viết (0 Tweet, 1 Retweet, 2 Comment, 3 QuoteTweet)
+                example: 0
+              audience:
+                type: integer
+                description: Đối tượng xem (0 public, 1 private (tweet circle), ...)
+                example: 0
+              content:
+                type: string
+                description: Nội dung của bài viết
+                example: "Suffragium tego adicio thymbra ut..."
+              parent_id:
+                type: string
+                description: ID của bài viết cha (nếu có)
+                example: null
+              hashtags:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                      description: ID của hashtag
+                      example: "65afe220eed4fa119c52edd5"
+                    name:
+                      type: string
+                      description: Tên của hashtag
+                      example: "adiuvo"
+                    created_at:
+                      type: string
+                      format: date-time
+                      description: Thời điểm tạo hashtag
+                      example: "2024-01-23T15:58:24.353Z"
+                description: Danh sách các hashtag được sử dụng trong bài viết
+              mentions:
+                type: array
+                items:
+                  type: string
+                description: Danh sách các người được đề cập đến trong bài viết
+              medias:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: integer
+                      description: Loại phương tiện (0 hình ảnh, 1 video, 2 video HLS)
+                      example: 0
+                    url:
+                      type: string
+                      description: Đường dẫn của phương tiện
+                      example: "gdsfg.hsdf"
+                description: Danh sách các phương tiện đính kèm trong bài viết
+              guest_views:
+                type: integer
+                description: Số lượt xem từ người không đăng nhập
+                example: 0
+              user_views:
+                type: integer
+                description: Số lượt xem từ người đăng nhập
+                example: 4
+              created_at:
+                type: string
+                format: date-time
+                description: Thời điểm tạo bài viết
+                example: "2024-01-24T15:29:13.039Z"
+              updated_at:
+                type: string
+                format: date-time
+                description: Thời điểm cập nhật bài viết
+                example: "2024-02-05T06:27:41.995Z"
+              user:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    description: ID của người tạo bài viết
+                    example: "65b12cbed8add743c68e107a"
+                  name:
+                    type: string
+                    description: Tên của người tạo bài viết
+                    example: "fffff"
+                  email:
+                    type: string
+                    description: Email của người tạo bài viết
+                    example: "Dylan.Lakin65@hotmail.com"
+                  date_of_birth:
+                    type: string
+                    format: date-time
+                    description: Ngày sinh của người tạo bài viết
+                    example: "2024-11-15T12:30:00.000Z"
+                  verify:
+                    type: integer
+                    description: Trạng thái xác minh của người tạo bài viết (1 đã xác minh, 0 chưa xác minh)
+                    example: 1
+                  bio:
+                    type: string
+                    description: Tiểu sử của người tạo bài viết
+                    example: "dd"
+                  location:
+                    type: string
+                    description: Địa điểm của người tạo bài viết
+                    example: "strdding"
+                  website:
+                    type: string
+                    description: Địa chỉ website của người tạo bài viết
+                    example: "hi.cddom"
+                  username:
+                    type: string
+                    description: Tên người dùng của người tạo bài viết
+                    example: "strindg"
+                  avatar:
+                    type: string
+                    description: Avatar của người tạo bài viết
+                    example: "hihi.dcom"
+                  cover_photo:
+                    type: string
+                    description: Ảnh bìa của người tạo bài viết
+                    example: "hhaha.cddom"
+                description: Thông tin của người tạo bài viết
+              bookmarks:
+                type: integer
+                description: Số lượt lưu bài viết
+                example: 0
+              likes:
+                type: integer
+                description: Số lượt thích bài viết
+                example: 0
+              retweet:
+                type: integer
+                description: Số lượt chia sẻ bài viết
+                example: 0
+              comment:
+                type: integer
+                description: Số lượt bình luận bài viết
+                example: 0
+              quote_tweet:
+                type: integer
+                description: Số lượt trích dẫn bài viết
+                example: 0
+          description: Danh sách thông tin chi tiết của các bài viết mới
+        total_page:
+          type: integer
+          description: Tổng số trang
+          example: 1
+        page:
+          type: integer
+          description: Trang hiện tại
+          example: 1
+        limit:
+          type: integer
+          description: Số lượng bài viết trên mỗi trang
+          example: 10
+        message:
+          type: string
+          example: "Get new feeds success"
+      required:
+        - result
+        - total_page
+        - page
+        - limit
+        - message  
+    GetConversationSuccess:
+      type: object
+      properties:
+        result:
+          type: array
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: ID của tin nhắn
+                example: "65be900b3459ac4e0f0ff6a4"
+              sender_id:
+                type: string
+                description: ID của người gửi tin nhắn
+                example: "65b12c6d3742e26204688ef1"
+              receiver_id:
+                type: string
+                description: ID của người nhận tin nhắn
+                example: "65b74928a67eb597e9412d1f"
+              content:
+                type: string
+                description: Nội dung của tin nhắn
+                example: "213"
+              created_at:
+                type: string
+                format: date-time
+                description: Thời điểm gửi tin nhắn
+                example: "2024-02-03T19:12:11.677Z"
+            description: Thông tin chi tiết của tin nhắn trong cuộc trò chuyện
+        page:
+          type: integer
+          description: Trang hiện tại
+          example: 1
+        total_page:
+          type: integer
+          description: Tổng số trang
+          example: 30
+        message:
+          type: string
+          example: "Get conversation success"
+    SearchSuccess:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            tweets:
+              type: object
+              properties:
+                total_page:
+                  type: integer
+                  description: Tổng số trang cho các tweets
+                  example: 26
+                resultTweet:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: ID của tweet
+                        example: "65b12cc9d8add743c68e11eb"
+                      user_id:
+                        type: string
+                        description: ID của người đăng tweet
+                        example: "65b12cc3d8add743c68e10bf"
+                      type:
+                        type: integer
+                        description: Loại tweet
+                        example: 0
+                      audience:
+                        type: integer
+                        description: Đối tượng xem
+                        example: 0
+                      content:
+                        type: string
+                        description: Nội dung của tweet
+                        example: "Vel annus vinco sordeo verbum volubilis..."
+                      parent_id:
+                        type: string
+                        description: ID của tweet gốc (nếu có)
+                        example: null
+                      hashtags:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              description: ID của hashtag
+                              example: "65afe220eed4fa119c52ee10"
+                            name:
+                              type: string
+                              description: Tên của hashtag
+                              example: "bonus"
+                            created_at:
+                              type: string
+                              format: date-time
+                              description: Thời điểm tạo hashtag
+                              example: "2024-01-23T15:58:24.626Z"
+                        description: Danh sách các hashtag liên quan
+                      mentions:
+                        type: array
+                        items:
+                          type: string
+                        description: Danh sách người được mention trong tweet
+                      medias:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            type:
+                              type: integer
+                              description: Loại media
+                              example: 1
+                            url:
+                              type: string
+                              description: URL của media
+                              example: "http://example.com/image.jpg"
+                        description: Danh sách media đính kèm
+                      guest_views:
+                        type: integer
+                        description: Số lượt xem từ khách
+                        example: 0
+                      user_views:
+                        type: integer
+                        description: Số lượt xem từ người dùng
+                        example: 31
+                      created_at:
+                        type: string
+                        format: date-time
+                        description: Thời điểm tạo tweet
+                        example: "2024-01-24T15:29:13.069Z"
+                      updated_at:
+                        type: string
+                        format: date-time
+                        description: Thời điểm cập nhật tweet
+                        example: "2024-02-06T11:37:50.027Z"
+                      user:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                            description: ID của người đăng tweet
+                            example: "65b12cc3d8add743c68e10bf"
+                          name:
+                            type: string
+                            description: Tên của người đăng tweet
+                            example: "Winifred34"
+                          email:
+                            type: string
+                            description: Email của người đăng tweet
+                            example: "Jovani.Hauck@hotmail.com"
+                          date_of_birth:
+                            type: string
+                            format: date-time
+                            description: Ngày sinh của người đăng tweet
+                            example: "2023-10-22T17:03:05.314Z"
+                          verify:
+                            type: integer
+                            description: Trạng thái xác minh của người đăng tweet
+                            example: 1
+                          bio:
+                            type: string
+                            description: Bio của người đăng tweet
+                          location:
+                            type: string
+                            description: Địa chỉ của người đăng tweet
+                          website:
+                            type: string
+                            description: Website của người đăng tweet
+                          username:
+                            type: string
+                            description: Username của người đăng tweet
+                          avatar:
+                            type: string
+                            description: Avatar của người đăng tweet
+                          cover_photo:
+                            type: string
+                            description: Ảnh bìa của người đăng tweet
+                      bookmarks:
+                        type: integer
+                        description: Số lượt bookmark
+                        example: 0
+                      likes:
+                        type: integer
+                        description: Số lượt thích
+                        example: 0
+                      retweet:
+                        type: integer
+                        description: Số lượt retweet
+                        example: 0
+                      comment:
+                        type: integer
+                        description: Số lượt bình luận
+                        example: 0
+                      quote_tweet:
+                        type: integer
+                        description: Số lượt trích dẫn tweet
+                        example: 0
+            users:
+              type: object
+              properties:
+                total_page:
+                  type: integer
+                  description: Tổng số trang cho người dùng
+                  example: 0
+                resultUser:
+                  type: array
+                  example: []
+                  description: Danh sách người dùng
+          description: Kết quả tìm kiếm
+        message:
+          type: string
+          example: "Search success"
+      required:
+        - result
+        - message
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

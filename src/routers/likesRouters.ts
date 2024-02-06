@@ -6,6 +6,6 @@ import { catchError } from '~/utils/handler';
 const router = Router();
 
 router.post('/like', accessTokenValidator, verifiedUserValidator, likeValidator, catchError(likeController));
-router.post('/un-like', accessTokenValidator, verifiedUserValidator, likeValidator, catchError(unlikeController));
+router.post('/unlike', accessTokenValidator, verifiedUserValidator, likeValidator, catchError(unlikeController));
 
 export default router;

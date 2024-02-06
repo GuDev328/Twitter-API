@@ -213,7 +213,7 @@ class TweetsService {
     return { total_page: Math.ceil(total / limit), result };
   }
 
-  async getNewFeeds(userId: string, limit: number, page: number) {
+  async getNewsFeed(userId: string, limit: number, page: number) {
     const listFollower = await db.followers
       .find(
         { user_id: new ObjectId(userId) },

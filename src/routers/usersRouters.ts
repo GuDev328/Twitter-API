@@ -76,7 +76,7 @@ router.patch(
 );
 
 router.get(
-  '/get-profile',
+  '/get-profile/:username',
   getProfileValidator,
   accessTokenValidator,
   verifiedUserValidator,

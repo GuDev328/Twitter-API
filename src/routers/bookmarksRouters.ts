@@ -13,7 +13,7 @@ router.post(
   catchError(bookmarkController)
 );
 router.post(
-  '/un-bookmark',
+  '/unbookmark',
   accessTokenValidator,
   verifiedUserValidator,
   bookmarkValidator,

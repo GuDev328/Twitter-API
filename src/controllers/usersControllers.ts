@@ -137,7 +137,6 @@ export const getProfileController = async (req: Request<ParamsDictionary, any, a
 export const followController = async (req: Request<ParamsDictionary, any, FollowRequest>, res: Response) => {
   const result = await userService.follow(req.body);
   res.status(200).json({
-    result,
     message: 'Follow sucess'
   });
 };
@@ -145,7 +144,6 @@ export const followController = async (req: Request<ParamsDictionary, any, Follo
 export const unfollowController = async (req: Request<ParamsDictionary, any, UnfollowRequest>, res: Response) => {
   const result = await userService.unfollow(req.body);
   res.status(200).json({
-    result,
     message: 'Unfollow sucess'
   });
 };
@@ -157,7 +155,7 @@ export const changePasswordController = async (
   const result = await userService.changePassword(req.body);
   res.status(200).json({
     result,
-    message: 'ChangePassword sucess'
+    message: 'Change Password sucess'
   });
 };
 

@@ -359,7 +359,7 @@ export const getTweetChildrenValidator = validate(
   })
 );
 
-export const getNewFeedsValidator = validate(
+export const getNewsFeedValidator = validate(
   checkSchema({
     limit: {
       isNumeric: { errorMessage: 'Limit is a number' },

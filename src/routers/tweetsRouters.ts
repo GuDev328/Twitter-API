@@ -1,14 +1,14 @@
 import { Router } from 'express';
 import {
   createTweetController,
-  getNewFeedsController,
+  getNewsFeedController,
   getTweetChildrenController,
   getTweetController
 } from '~/controllers/tweetsControllers';
 import {
   audienceValidator,
   createTweetValidator,
-  getNewFeedsValidator,
+  getNewsFeedValidator,
   getTweetChildrenValidator,
   tweetIdValidator
 } from '~/middlewares/tweetsMiddlewares';
@@ -52,5 +52,5 @@ router.get(
  * Header: {Authorization: Bearer <access_token>}
  * Query: {limit: number, page: number}
  */
-router.get('/', getNewFeedsValidator, accessTokenValidator, verifiedUserValidator, catchError(getNewFeedsController));
+router.get('/', getNewsFeedValidator, accessTokenValidator, verifiedUserValidator, catchError(getNewsFeedController));
 export default router;
