@@ -1,12 +1,9 @@
 import db from '~/services/databaseServices';
-import { config } from 'dotenv';
 import { ObjectId } from 'mongodb';
 import { LikeRequest } from '~/models/requests/LikeRequest';
 import Like from '~/models/schemas/LikeSchema';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
-
-config();
 
 class LikesService {
   constructor() {}

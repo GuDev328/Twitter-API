@@ -1,6 +1,5 @@
 import { Collection, Db, MongoClient, ServerApiVersion } from 'mongodb';
 import User from '~/models/schemas/UserSchema';
-import dotenv from 'dotenv';
 import Follower from '~/models/schemas/FollowerSchema';
 import Bookmark from '~/models/schemas/BookmarkSchema';
 import Hashtag from '~/models/schemas/HashtagSchema';
@@ -8,15 +7,15 @@ import Like from '~/models/schemas/LikeSchema';
 import { RefreshToken } from '~/models/schemas/RefreshTokenSchema';
 import Tweet from '~/models/schemas/TweetSchema';
 import Conversation from '~/models/schemas/ConversationSchema';
-dotenv.config();
-const uri = process.env.MONGODB_URI;
+import { env } from '~/constants/config';
+const uri = env.mongodbURI;
 
 class DatabaseServices {
   private client: MongoClient;
   private db: Db;
   constructor() {
     this.client = new MongoClient(uri!);
-    this.db = this.client.db(process.env.DB_NAME);
+    this.db = this.client.db(env.dbName);
   }
 
   async connect() {

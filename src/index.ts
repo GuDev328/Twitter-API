@@ -17,6 +17,7 @@ import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 import YAML from 'yaml';
 import path from 'path';
+import { env } from './constants/config';
 
 const file = fs.readFileSync(path.resolve('src/swagger.yaml'), 'utf8');
 const swaggerDocument = YAML.parse(file);
@@ -46,5 +47,5 @@ app.use('/search', searchRouters);
 app.use('/conversations', conversationsRouters);
 app.use(defaultsErrorHandler);
 
-const port = process.env.PORT || 3030;
+const port = env.port || 3030;
 httpServer.listen(port, () => console.log('API-Twitter server is running port: ' + port));

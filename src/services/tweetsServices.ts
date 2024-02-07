@@ -1,16 +1,9 @@
-import { Request } from 'express';
-import path from 'path';
 import db from '~/services/databaseServices';
-import { config } from 'dotenv';
 import { TweetRequest, getTweetRequest } from '~/models/requests/TweetRequest';
 import Tweet from '~/models/schemas/TweetSchema';
 import { ObjectId } from 'mongodb';
-import { stringArrayToObjectIdArray } from '~/utils/common';
 import Hashtag from '~/models/schemas/HashtagSchema';
-import { httpStatus } from '~/constants/httpStatus';
-import { ErrorWithStatus } from '~/models/Errors';
 import { TweetTypeEnum } from '~/constants/enum';
-config();
 
 class TweetsService {
   constructor() {}

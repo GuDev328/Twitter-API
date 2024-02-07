@@ -28,6 +28,7 @@ import Follower from '~/models/schemas/FollowerSchema';
 import { sendVerifyEmail } from '~/utils/email';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
+import { env } from '~/constants/config';
 
 class UsersService {
   constructor() {}
@@ -41,7 +42,7 @@ class UsersService {
         }
       },
       {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN
+        expiresIn: env.accessTokenExpiresIn
       }
     );
   }
@@ -56,7 +57,7 @@ class UsersService {
         }
       },
       {
-        expiresIn: expiresIn || process.env.REFRESH_TOKEN_EXPIRES_IN
+        expiresIn: expiresIn || env.refreshTokenExporesIn
       }
     );
   }
@@ -118,9 +119,9 @@ class UsersService {
   private async getOauthGoogleToken(code: string) {
     const body = {
       code,
-      client_id: process.env.GOOGLE_CLIENT_ID,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET,
-      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      client_id: env.googleClientID,
+      client_secret: env.googleClientSecret,
+      redirect_uri: env.googleRedirectURI,
       grant_type: 'authorization_code'
     };
     const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {

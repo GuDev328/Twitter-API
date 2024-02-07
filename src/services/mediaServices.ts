@@ -1,18 +1,14 @@
 import { Request } from 'express';
 import path from 'path';
 import sharp from 'sharp';
-import db from '~/services/databaseServices';
 import { getFiles, handleUploadImage, handleUploadVideo, handleUploadVideoHLS } from '~/utils/file';
 import fs from 'fs-extra';
-import { isProduction } from '~/constants/config';
-import { config } from 'dotenv';
+import { env, isProduction } from '~/constants/config';
 import { Media, MediaType } from '~/constants/enum';
 import { encodeHLSWithMultipleVideoStreams } from '~/utils/video';
 import { UploadFileToS3 } from '~/utils/s3';
 import { CompleteMultipartUploadOutput } from '@aws-sdk/client-s3';
 import mime from 'mime-types';
-
-config();
 
 class Queue {
   items: string[];
@@ -107,10 +103,8 @@ class MediasService {
         encodeVideoQueue.enqueue(fileUploaded.filepath);
         return {
           url: isProduction
-            ? `${process.env.HOST}/medias/video-hls/${fileUploaded.newFilename.split('.')[0]}/master.m3u8`
-            : `http://localhost:${process.env.PORT}/medias/video-hls/${
-                fileUploaded.newFilename.split('.')[0]
-              }/master.m3u8`,
+            ? `${env.host}/medias/video-hls/${fileUploaded.newFilename.split('.')[0]}/master.m3u8`
+            : `http://localhost:${env.port}/medias/video-hls/${fileUploaded.newFilename.split('.')[0]}/master.m3u8`,
           type: MediaType.VideoHLS
         };
       })
