@@ -10,6 +10,7 @@ config({
 export const env = {
   port: process.env.PORT as string,
   host: process.env.HOST as string,
+  clientUrl: process.env.CLIENT_URL as string,
 
   mongodbURI: process.env.MONGODB_URI as string,
   dbName: process.env.DB_NAME as string,

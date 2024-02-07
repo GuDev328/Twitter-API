@@ -1,6 +1,5 @@
 import express from 'express';
 import { createServer } from 'http';
-import dotenv from 'dotenv';
 import usersRouters from '~/routers/usersRouters';
 import mediasRouters from '~/routers/mediasRouters';
 import tweetsRouters from '~/routers/tweetsRouters';
@@ -10,14 +9,15 @@ import searchRouters from '~/routers/searchRouters';
 import conversationsRouters from '~/routers/conversationsRouters';
 import db from './services/databaseServices';
 import { defaultsErrorHandler } from './middlewares/errorsMiddlewares';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import initializeSocket from './utils/socket';
 // import '~/utils/faker';
 import swaggerUi from 'swagger-ui-express';
 import fs from 'fs';
 import YAML from 'yaml';
 import path from 'path';
-import { env } from './constants/config';
+import { env, isProduction } from './constants/config';
+import helmet from 'helmet';
 
 const file = fs.readFileSync(path.resolve('src/swagger.yaml'), 'utf8');
 const swaggerDocument = YAML.parse(file);
@@ -25,14 +25,17 @@ const swaggerDocument = YAML.parse(file);
 const app = express();
 const httpServer = createServer(app);
 
-dotenv.config();
-
 db.connect().then(() => {
   db.indexUsersCollection();
   db.indexTweetsCollection();
 });
 
-app.use(cors());
+const corsConfig: CorsOptions = {
+  origin: isProduction ? env.clientUrl : '*'
+};
+
+app.use(helmet());
+app.use(cors(corsConfig));
 app.use(express.json());
 
 initializeSocket(httpServer);
