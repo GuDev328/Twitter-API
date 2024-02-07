@@ -1,12 +1,9 @@
 import db from '~/services/databaseServices';
-import { config } from 'dotenv';
 import { ObjectId } from 'mongodb';
 import { BookmarkRequest } from '~/models/requests/BookmarkRequest';
 import Bookmark from '~/models/schemas/BookmarkSchema';
 import { httpStatus } from '~/constants/httpStatus';
 import { ErrorWithStatus } from '~/models/Errors';
-
-config();
 
 class BookmarksService {
   constructor() {}
