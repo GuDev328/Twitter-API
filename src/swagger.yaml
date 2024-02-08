@@ -22,8 +22,8 @@ info:
     email: phamdat.work@gmail.com
   version: 1.0.11
 servers:
-  - url: http://localhost:3030
   - url: http://localhost:3285
+  - url: http://localhost:3030
   - url: http://apitt.gudev.click
 
 tags:
