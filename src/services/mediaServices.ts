@@ -28,8 +28,8 @@ class Queue {
         this.encoding = true;
         const filePath = this.items[0];
         await encodeHLSWithMultipleVideoStreams(filePath);
-        const idName = filePath.split('\\').pop() as string;
-        await fs.remove(filePath);
+        const idName = path.basename(filePath);
+        await fs.rm(filePath);
         this.items.shift();
         const files = getFiles(path.resolve('uploads/videos', idName));
         files.map((filePath) => {
@@ -39,10 +39,14 @@ class Queue {
             mime.lookup(filePath) as string
           );
         });
-        fs.rmdirSync(path.resolve('uploads/videos', idName), { recursive: true });
+        await fs.rm(path.resolve('uploads/videos', idName), { recursive: true });
+
         this.encoding = false;
         this.processing();
       } catch (e) {
+        this.items.shift();
+        this.encoding = false;
+        this.processing();
         console.log('Error in processing encode video hls: ' + e);
       }
     }

@@ -1,0 +1,6 @@
+version: '1'
+services:
+  twitter-api:
+    image: gudev/twitter-api:v1
+    ports:
+      - '3285:3285'

@@ -48,7 +48,7 @@
     "minimist": "^1.2.8",
     "mongodb": "^6.1.0",
     "nanoid": "^3.3.7",
-    "sharp": "^0.33.1",
+    "sharp": "^0.33.2",
     "slash": "^5.1.0",
     "socket.io": "^4.7.4",
     "swagger-jsdoc": "^6.2.8",

@@ -1,9 +1,9 @@
 /* eslint-disable no-undef */
 module.exports = {
-  app: [
+  apps: [
     {
-      name: 'api-twitter',
-      script: 'node dist/index.js',
+      name: 'apitwitter',
+      script: 'dist/index.js',
       env: {
         NODE_ENV: 'development'
       },

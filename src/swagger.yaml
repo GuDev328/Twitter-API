@@ -23,6 +23,9 @@ info:
   version: 1.0.11
 servers:
   - url: http://localhost:3030
+  - url: http://localhost:3285
+  - url: http://apitt.gudev.click
+
 tags:
   - name: user
     description: Everything about Users
