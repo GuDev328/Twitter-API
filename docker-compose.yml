@@ -3,4 +3,4 @@ services:
   twitter-api:
     image: gudev328/api-twitter:v1
     ports:
-      - '3285:3285'
+      - '3030:3030'
